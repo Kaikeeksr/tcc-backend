@@ -1,0 +1,38 @@
+<Project>
+
+  <!--
+    Central Package Management: a versao de cada pacote e declarada UMA vez aqui.
+    Nos .csproj o PackageReference aparece sem atributo Version.
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Api -->
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.16.15" />
+    <!--
+      Pin de seguranca (dependencia transitiva, nao usada diretamente pelo codigo).
+      Microsoft.AspNetCore.OpenApi 10.0.10 traz Microsoft.OpenApi 2.0.0, que tem a
+      CVE-2026-49451 (GHSA-v5pm-xwqc-g5wc, severidade alta): um documento OpenAPI
+      com referencia circular de schema derruba o processo por stack overflow.
+      Corrigido a partir da 2.7.5. Ficamos na linha 2.x porque a 3.x tem API
+      incompativel com o Microsoft.AspNetCore.OpenApi 10.
+      Este pin so funciona por causa de CentralPackageTransitivePinningEnabled.
+      Remova quando a Microsoft atualizar a dependencia na origem.
+    -->
+    <PackageVersion Include="Microsoft.OpenApi" Version="2.11.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10" />
+
+    <!-- Infrastructure -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.10" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.10" />
+  </ItemGroup>
+
+</Project>

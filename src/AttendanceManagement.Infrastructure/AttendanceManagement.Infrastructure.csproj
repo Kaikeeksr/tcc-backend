@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\AttendanceManagement.Application\AttendanceManagement.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Todo o acoplamento com PostgreSQL vive aqui, e so aqui. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="EFCore.NamingConventions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <!--
+      O health check do banco fica aqui, e nao na Api: assim a Api nao precisa
+      conhecer o AppDbContext e continua tocando esta camada em uma unica linha.
+    -->
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AttendanceManagement.Api/AttendanceManagement.Api.csproj" />
+    <Project Path="src/AttendanceManagement.Application/AttendanceManagement.Application.csproj" />
+    <Project Path="src/AttendanceManagement.Domain/AttendanceManagement.Domain.csproj" />
+    <Project Path="src/AttendanceManagement.Infrastructure/AttendanceManagement.Infrastructure.csproj" />
+  </Folder>
+</Solution>

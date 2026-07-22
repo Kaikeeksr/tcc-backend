@@ -1,0 +1,49 @@
+## Build
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+[Ll]og/
+[Ll]ogs/
+artifacts/
+publish/
+*.dll
+*.exe
+*.pdb
+
+## .NET / MSBuild
+*.user
+*.suo
+*.userprefs
+*.cache
+*.nupkg
+*.snupkg
+msbuild.log
+msbuild.err
+project.lock.json
+.packages/
+
+## Testes
+[Tt]est[Rr]esult*/
+coverage*.json
+coverage*.xml
+*.coverage
+
+## IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*~
+
+## Segredos - NUNCA versionar
+## (a connection string vive em `dotnet user-secrets`, fora do repositorio)
+appsettings.*.local.json
+secrets.json
+*.env
+.env
+*.pfx
+
+## SO
+.DS_Store
+Thumbs.db

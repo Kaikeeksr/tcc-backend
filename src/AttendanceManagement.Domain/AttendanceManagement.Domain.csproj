@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Esta camada nao tem NENHUM PackageReference e NENHUM ProjectReference.
+    E de proposito: o dominio nao conhece EF Core, ASP.NET, banco ou HTTP.
+    Se um dia algum pacote aparecer aqui, o desacoplamento foi quebrado.
+    TargetFramework, Nullable e ImplicitUsings vem do Directory.Build.props na raiz.
+  -->
+
+</Project>

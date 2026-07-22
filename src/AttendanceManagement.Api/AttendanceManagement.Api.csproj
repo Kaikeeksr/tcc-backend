@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <!-- Habilita o comando `dotnet user-secrets` neste projeto. -->
+    <UserSecretsId>attendance-management-api</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AttendanceManagement.Application\AttendanceManagement.Application.csproj" />
+    <!--
+      A unica razao de a Api referenciar Infrastructure e o composition root:
+      Program.cs chama AddInfrastructure(). Nenhum controller usa EF Core diretamente.
+    -->
+    <ProjectReference Include="..\AttendanceManagement.Infrastructure\AttendanceManagement.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Scalar.AspNetCore" />
+    <!-- Tooling de migrations: usado em tempo de design, nao vai para o runtime. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

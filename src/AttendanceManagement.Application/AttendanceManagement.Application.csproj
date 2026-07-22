@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\AttendanceManagement.Domain\AttendanceManagement.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Unico pacote da camada, e so de abstracoes (interfaces), nao de implementacao.
+      Serve para expor o metodo AddApplication(). Nao traz EF Core nem ASP.NET junto.
+    -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+</Project>

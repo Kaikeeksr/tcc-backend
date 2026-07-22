@@ -1,0 +1,17 @@
+# Normaliza fim de linha: LF no repositorio, nativo no working copy.
+* text=auto
+
+*.cs        text diff=csharp
+*.csproj    text
+*.slnx      text
+*.props     text
+*.json      text
+*.md        text
+*.yml       text
+*.http      text
+
+*.png       binary
+*.jpg       binary
+*.ico       binary
+*.pfx       binary
+*.dll       binary

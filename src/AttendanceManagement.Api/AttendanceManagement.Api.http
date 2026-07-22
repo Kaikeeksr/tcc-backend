@@ -1,0 +1,57 @@
+@host = http://localhost:5218
+
+### Liveness - o processo esta de pe? (nao toca no banco)
+GET {{host}}/health
+
+### Readiness - da para atender? (consulta o PostgreSQL do Clever Cloud)
+GET {{host}}/health/ready
+
+### Cadastrar aluno -> 201 Created
+POST {{host}}/api/v1/alumni
+Content-Type: application/json
+
+{
+  "name": "Maria Oliveira",
+  "email": "maria.oliveira@exemplo.com"
+}
+
+### Repetir o mesmo e-mail -> 409 Conflict
+# Demonstra o Result pattern: o erro nasce no AlumniService como
+# AlumniErrors.EmailAlreadyInUse e vira ProblemDetails no ApiController.
+POST {{host}}/api/v1/alumni
+Content-Type: application/json
+
+{
+  "name": "Maria Oliveira (duplicada)",
+  "email": "maria.oliveira@exemplo.com"
+}
+
+### E-mail invalido -> 400 Bad Request
+# Barrado pelas DataAnnotations, antes mesmo de o controller executar.
+POST {{host}}/api/v1/alumni
+Content-Type: application/json
+
+{
+  "name": "Fulano",
+  "email": "nao-e-email"
+}
+
+### Nome curto demais -> 400 Bad Request
+POST {{host}}/api/v1/alumni
+Content-Type: application/json
+
+{
+  "name": "A",
+  "email": "fulano@exemplo.com"
+}
+
+### Listar todos
+GET {{host}}/api/v1/alumni
+
+### Listar todos, pedindo compressao Brotli
+# Confira o cabecalho Content-Encoding: br na resposta.
+GET {{host}}/api/v1/alumni
+Accept-Encoding: br, gzip
+
+### Documento OpenAPI 3.1 cru
+GET {{host}}/openapi/v1.json

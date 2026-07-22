@@ -1,0 +1,51 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+[*.{json,yml,yaml,props,targets,csproj,slnx}]
+indent_size = 2
+
+# Migrations sao geradas pelo `dotnet ef` e reescritas a cada comando.
+# Aplicar regra de estilo nelas so geraria erro de build em codigo que nao e nosso.
+[**/Migrations/*.cs]
+generated_code = true
+dotnet_analyzer_diagnostic.severity = none
+
+[*.cs]
+# Namespaces com escopo de arquivo (sem chaves) - padrao moderno do C#.
+csharp_style_namespace_declarations = file_scoped:error
+
+# Usings organizados e fora do namespace.
+dotnet_sort_system_directives_first = true
+csharp_using_directive_placement = outside_namespace:error
+
+# Preferencias de expressao.
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_expression_bodied_properties = true:suggestion
+csharp_prefer_braces = true:suggestion
+csharp_style_prefer_primary_constructors = true:suggestion
+dotnet_style_prefer_conditional_expression_over_assignment = true:suggestion
+
+# Nomenclatura.
+dotnet_naming_rule.private_fields_underscore.severity = suggestion
+dotnet_naming_rule.private_fields_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_underscore.style = underscore_prefix
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_style.underscore_prefix.required_prefix = _
+dotnet_naming_style.underscore_prefix.capitalization = camel_case
+
+# CA1848 (LoggerMessage delegates) e exagero para o tamanho deste projeto.
+dotnet_diagnostic.CA1848.severity = none
+# CA2007 (ConfigureAwait) nao se aplica a ASP.NET Core.
+dotnet_diagnostic.CA2007.severity = none
+# CA1716: o tipo Error colide com palavra reservada do VB.NET. So importa para
+# consumidores em VB, que este projeto nao tem. "Error" e o nome canonico do
+# padrao Result e renomear para DomainError so pioraria a leitura.
+dotnet_diagnostic.CA1716.severity = none
