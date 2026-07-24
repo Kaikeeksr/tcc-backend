@@ -5,22 +5,15 @@ using Microsoft.AspNetCore.Mvc;
 namespace AttendanceManagement.Api.Handlers;
 
 /// <summary>
-/// Rede de seguranca para o que escapou do Result pattern.
-///
-/// Regra de negocio previsivel volta como Result e nunca chega aqui. O que chega
-/// aqui e o inesperado: banco fora do ar, bug, corrida de concorrencia.
-///
-/// O TemplateCamadas nao tinha nada disso — excecao nao tratada em Producao
-/// virava um 500 vazio, sem corpo e sem rastro.
+/// Rede de segurança para o que escapou do Result pattern: banco fora do ar, bug,
+/// corrida de concorrência. Regra de negócio previsível volta como Result e nunca
+/// chega aqui.
 /// </summary>
 internal sealed class GlobalExceptionHandler(
     IProblemDetailsService problemDetailsService,
     ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {
-    /// <summary>
-    /// 499 nao existe na classe StatusCodes do ASP.NET Core; e a convencao do
-    /// nginx para "o cliente fechou a conexao antes da resposta".
-    /// </summary>
+    // 499 é a convenção do nginx para "cliente fechou a conexão antes da resposta".
     private const int Status499ClientClosedRequest = 499;
 
     public async ValueTask<bool> TryHandleAsync(
@@ -30,23 +23,22 @@ internal sealed class GlobalExceptionHandler(
     {
         var (statusCode, title, detail) = exception switch
         {
-            // Corrida perdida para o indice unico do banco: e conflito, nao bug.
             UniqueConstraintViolationException => (
                 StatusCodes.Status409Conflict,
-                "Conflito com o estado atual",
-                "O registro já existe. Verifique os campos únicos e tente novamente."),
+                "Conflict with current state",
+                "The record already exists. Check the unique fields and try again."),
 
             OperationCanceledException => (
                 Status499ClientClosedRequest,
-                "Requisição cancelada",
-                "A requisição foi cancelada pelo cliente."),
+                "Request canceled",
+                "The request was canceled by the client."),
 
-            // Detalhe generico de proposito: mensagem de excecao pode conter
+            // Detalhe genérico de propósito: a mensagem da exceção pode conter
             // nome de tabela, caminho de arquivo ou trecho de connection string.
             _ => (
                 StatusCodes.Status500InternalServerError,
-                "Erro interno",
-                "Ocorreu um erro inesperado ao processar a requisição."),
+                "Internal error",
+                "An unexpected error occurred while processing the request."),
         };
 
         logger.LogError(

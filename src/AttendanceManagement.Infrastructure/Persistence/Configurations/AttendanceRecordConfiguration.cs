@@ -24,42 +24,42 @@ internal sealed class AttendanceRecordConfiguration : IEntityTypeConfiguration<A
         builder.HasIndex(x => new { x.AttendanceSessionId, x.StudentId })
             .IsUnique()
             .HasDatabaseName("ix_attendance_record_session_student");
-        // Histórico do aluno (app do responsável).
         builder.HasIndex(x => new { x.StudentId, x.RecordedAtUtc })
             .HasDatabaseName("ix_attendance_record_student_date");
         builder.HasIndex(x => new { x.TransporterId, x.RecordedAtUtc })
             .HasDatabaseName("ix_attendance_record_transporter_date");
+
         // Parcial: a tela "quem foi retirado" varre só as linhas retiradas.
         builder.HasIndex(x => new { x.TransporterId, x.RecordedAtUtc })
             .HasFilter("status = 'PickedUpByGuardian'")
             .HasDatabaseName("ix_attendance_record_picked_up");
 
-        builder.HasOne<AttendanceSession>()
+        builder.HasOne(x => x.AttendanceSession)
             .WithMany()
             .HasForeignKey(x => x.AttendanceSessionId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<Student>()
+        builder.HasOne(x => x.Student)
             .WithMany()
             .HasForeignKey(x => x.StudentId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<Transporter>()
+        builder.HasOne(x => x.Transporter)
             .WithMany()
             .HasForeignKey(x => x.TransporterId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<Guardian>()
+        builder.HasOne(x => x.PickedUpByGuardian)
             .WithMany()
             .HasForeignKey(x => x.PickedUpByGuardianId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<Guardian>()
+        builder.HasOne(x => x.JustifiedByGuardian)
             .WithMany()
             .HasForeignKey(x => x.JustifiedBy)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<UserAccount>()
+        builder.HasOne(x => x.RecordedByUser)
             .WithMany()
             .HasForeignKey(x => x.RecordedBy)
             .OnDelete(DeleteBehavior.Restrict);

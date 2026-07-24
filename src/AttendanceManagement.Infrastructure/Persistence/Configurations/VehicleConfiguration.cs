@@ -22,7 +22,7 @@ internal sealed class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
             .IsUnique()
             .HasDatabaseName("ix_vehicle_transporter_plate");
 
-        builder.HasOne<Transporter>()
+        builder.HasOne(x => x.Transporter)
             .WithMany()
             .HasForeignKey(x => x.TransporterId)
             .OnDelete(DeleteBehavior.Restrict);

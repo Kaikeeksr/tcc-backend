@@ -20,18 +20,19 @@ internal sealed class GuardianStudentConfiguration : IEntityTypeConfiguration<Gu
             .IsUnique()
             .HasDatabaseName("ix_guardian_student_pair");
         builder.HasIndex(x => x.StudentId).HasDatabaseName("ix_guardian_student_student");
+
         // No máximo um contato principal ativo por aluno.
         builder.HasIndex(x => x.StudentId)
             .IsUnique()
             .HasFilter("is_primary AND active")
             .HasDatabaseName("ix_guardian_student_primary");
 
-        builder.HasOne<Guardian>()
+        builder.HasOne(x => x.Guardian)
             .WithMany()
             .HasForeignKey(x => x.GuardianId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<Student>()
+        builder.HasOne(x => x.Student)
             .WithMany()
             .HasForeignKey(x => x.StudentId)
             .OnDelete(DeleteBehavior.Restrict);

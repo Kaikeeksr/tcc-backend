@@ -4,10 +4,9 @@ using AttendanceManagement.Domain.Enums;
 namespace AttendanceManagement.Domain.Entities;
 
 /// <summary>
-/// Vínculo N:N guardian ↔ student. `CanPickup` alimenta o "retirado pelo
-/// responsável" (só quem pode retirar aparece na lista); `IsPrimary` marca o
-/// contato exibido primeiro — no máximo um ativo por aluno.
-/// Temporal, para preservar histórico de troca de responsável.
+/// Vínculo N:N guardian ↔ student. <c>CanPickup</c> alimenta o "retirado pelo
+/// responsável"; <c>IsPrimary</c> marca o contato principal (no máximo um ativo
+/// por aluno). Temporal.
 /// </summary>
 public sealed class GuardianStudent : AuditableEntity
 {
@@ -49,6 +48,10 @@ public sealed class GuardianStudent : AuditableEntity
 
     public DateTime? EndedAtUtc { get; private set; }
 
+    public Guardian Guardian { get; private set; } = null!;
+
+    public Student Student { get; private set; } = null!;
+
     public static Result<GuardianStudent> Create(
         Guid guardianId,
         Guid studentId,
@@ -58,12 +61,12 @@ public sealed class GuardianStudent : AuditableEntity
     {
         if (guardianId == Guid.Empty)
         {
-            return Result.Failure<GuardianStudent>(Error.Validation("GuardianStudent.GuardianRequired", "O responsável é obrigatório."));
+            return Result.Failure<GuardianStudent>(Error.Validation("GuardianStudent.GuardianRequired", "Guardian is required."));
         }
 
         if (studentId == Guid.Empty)
         {
-            return Result.Failure<GuardianStudent>(Error.Validation("GuardianStudent.StudentRequired", "O aluno é obrigatório."));
+            return Result.Failure<GuardianStudent>(Error.Validation("GuardianStudent.StudentRequired", "Student is required."));
         }
 
         return Result.Success(new GuardianStudent(
@@ -78,6 +81,12 @@ public sealed class GuardianStudent : AuditableEntity
     public void SetPrimary(bool isPrimary)
     {
         IsPrimary = isPrimary;
+        Touch();
+    }
+
+    public void SetRelationship(RelationshipType relationship)
+    {
+        Relationship = relationship;
         Touch();
     }
 

@@ -3,10 +3,8 @@ using AttendanceManagement.Domain.Abstractions;
 namespace AttendanceManagement.Domain.Entities;
 
 /// <summary>
-/// Grupo operacional de alunos de um transporter (a "turma" da van). Carrega a
-/// designação da equipe: veículo e assistant que servem o grupo.
-///
-/// Não confundir com <c>Student.Grade</c>, que é a série escolar ("3°A").
+/// Grupo operacional de alunos (a "turma" da van), com o veículo e o assistant
+/// designados. Não confundir com <c>Student.Grade</c> (a série escolar).
 /// </summary>
 public sealed class TransportGroup : SoftDeletableEntity
 {
@@ -28,23 +26,28 @@ public sealed class TransportGroup : SoftDeletableEntity
 
     public string Name { get; private set; } = null!;
 
-    /// <summary>Turno: manhã, tarde, noite.</summary>
     public string? Shift { get; private set; }
 
     public Guid? VehicleId { get; private set; }
 
     public Guid? AssistantId { get; private set; }
 
+    public Transporter Transporter { get; private set; } = null!;
+
+    public Vehicle? Vehicle { get; private set; }
+
+    public Assistant? Assistant { get; private set; }
+
     public static Result<TransportGroup> Create(Guid transporterId, string? name, string? shift)
     {
         if (transporterId == Guid.Empty)
         {
-            return Result.Failure<TransportGroup>(Error.Validation("TransportGroup.TransporterRequired", "O transportador é obrigatório."));
+            return Result.Failure<TransportGroup>(Error.Validation("TransportGroup.TransporterRequired", "Transporter is required."));
         }
 
         if (string.IsNullOrWhiteSpace(name))
         {
-            return Result.Failure<TransportGroup>(Error.Validation("TransportGroup.NameRequired", "O nome é obrigatório."));
+            return Result.Failure<TransportGroup>(Error.Validation("TransportGroup.NameRequired", "Name is required."));
         }
 
         return Result.Success(new TransportGroup(
@@ -59,5 +62,18 @@ public sealed class TransportGroup : SoftDeletableEntity
         VehicleId = vehicleId == Guid.Empty ? null : vehicleId;
         AssistantId = assistantId == Guid.Empty ? null : assistantId;
         Touch();
+    }
+
+    public Result Update(string? name, string? shift)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return Result.Failure(Error.Validation("TransportGroup.NameRequired", "Name is required."));
+        }
+
+        Name = name.Trim();
+        Shift = string.IsNullOrWhiteSpace(shift) ? null : shift.Trim();
+        Touch();
+        return Result.Success();
     }
 }

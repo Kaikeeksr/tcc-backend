@@ -1,10 +1,5 @@
 namespace AttendanceManagement.Domain.Abstractions;
 
-/// <summary>
-/// Entidade com carimbos de tempo de auditoria, sempre em UTC.
-/// `CreatedAtUtc` é fixado na criação; `UpdatedAtUtc` avança a cada mutação
-/// via <see cref="Touch"/>.
-/// </summary>
 public abstract class AuditableEntity : Entity
 {
     protected AuditableEntity(Guid id)

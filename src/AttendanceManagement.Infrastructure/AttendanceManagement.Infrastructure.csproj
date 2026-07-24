@@ -7,6 +7,8 @@
   <ItemGroup>
     <!-- Todo o acoplamento com PostgreSQL vive aqui, e so aqui. -->
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <!-- Assinatura do JWT. A validacao (leitura) fica na Api, com o JwtBearer. -->
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="EFCore.NamingConventions" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />

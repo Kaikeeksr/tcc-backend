@@ -4,11 +4,9 @@ using AttendanceManagement.Domain.Enums;
 namespace AttendanceManagement.Domain.Entities;
 
 /// <summary>
-/// A chamada: cabeçalho de uma sessão de um grupo em uma data e sentido.
-/// No máximo uma por (grupo, data, tipo).
-///
-/// `VehicleId`/`AssistantId` são snapshot de quem rodou no dia — o histórico
-/// não muda se a designação do grupo mudar depois.
+/// A chamada: cabeçalho de uma sessão de um grupo numa data e sentido. No máximo
+/// uma por (grupo, data, tipo). <c>VehicleId</c>/<c>AssistantId</c> são snapshot
+/// de quem rodou no dia.
 /// </summary>
 public sealed class AttendanceSession : AuditableEntity
 {
@@ -58,6 +56,12 @@ public sealed class AttendanceSession : AuditableEntity
 
     public Guid CreatedBy { get; private set; }
 
+    public Transporter Transporter { get; private set; } = null!;
+
+    public TransportGroup TransportGroup { get; private set; } = null!;
+
+    public UserAccount CreatedByUser { get; private set; } = null!;
+
     public bool IsOpen => Status == SessionStatus.Open;
 
     public static Result<AttendanceSession> Open(
@@ -71,17 +75,17 @@ public sealed class AttendanceSession : AuditableEntity
     {
         if (transporterId == Guid.Empty)
         {
-            return Result.Failure<AttendanceSession>(Error.Validation("AttendanceSession.TransporterRequired", "O transportador é obrigatório."));
+            return Result.Failure<AttendanceSession>(Error.Validation("AttendanceSession.TransporterRequired", "Transporter is required."));
         }
 
         if (transportGroupId == Guid.Empty)
         {
-            return Result.Failure<AttendanceSession>(Error.Validation("AttendanceSession.GroupRequired", "O grupo é obrigatório."));
+            return Result.Failure<AttendanceSession>(Error.Validation("AttendanceSession.GroupRequired", "Transport group is required."));
         }
 
         if (createdBy == Guid.Empty)
         {
-            return Result.Failure<AttendanceSession>(Error.Validation("AttendanceSession.CreatedByRequired", "O autor da chamada é obrigatório."));
+            return Result.Failure<AttendanceSession>(Error.Validation("AttendanceSession.CreatedByRequired", "The attendance author is required."));
         }
 
         return Result.Success(new AttendanceSession(
@@ -99,12 +103,12 @@ public sealed class AttendanceSession : AuditableEntity
     {
         if (Status == SessionStatus.Canceled)
         {
-            return Result.Failure(Error.Conflict("AttendanceSession.Canceled", "Uma chamada cancelada não pode ser fechada."));
+            return Result.Failure(Error.Conflict("AttendanceSession.Canceled", "A canceled attendance cannot be closed."));
         }
 
         if (Status == SessionStatus.Closed)
         {
-            return Result.Failure(Error.Conflict("AttendanceSession.AlreadyClosed", "A chamada já está fechada."));
+            return Result.Failure(Error.Conflict("AttendanceSession.AlreadyClosed", "The attendance is already closed."));
         }
 
         Status = SessionStatus.Closed;
@@ -117,7 +121,7 @@ public sealed class AttendanceSession : AuditableEntity
     {
         if (Status == SessionStatus.Closed)
         {
-            return Result.Failure(Error.Conflict("AttendanceSession.AlreadyClosed", "Uma chamada fechada não pode ser cancelada."));
+            return Result.Failure(Error.Conflict("AttendanceSession.AlreadyClosed", "A closed attendance cannot be canceled."));
         }
 
         Status = SessionStatus.Canceled;

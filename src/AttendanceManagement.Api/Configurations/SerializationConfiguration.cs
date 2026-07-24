@@ -1,22 +1,23 @@
 using System.Text.Json.Serialization;
+using AttendanceManagement.Api.Filters;
 
 namespace AttendanceManagement.Api.Configurations;
 
-/// <summary>Controllers + politica de serializacao JSON.</summary>
+/// <summary>Controllers + política de serialização JSON.</summary>
 internal static class SerializationConfiguration
 {
     public static IServiceCollection AddControllersConfiguration(this IServiceCollection services)
     {
         services
-            .AddControllers()
+            .AddControllers(options => options.Filters.Add<ValidationFilter>())
             .AddJsonOptions(options =>
-                // Nao serializa propriedade nula: payload menor na rede.
-                //
-                // A serializacao source-generated (JsonSerializerContext) volta
-                // aqui quando os DTOs existirem — insere-se o contexto no topo do
-                // TypeInfoResolverChain para eliminar reflection no hot path.
+            {
                 options.JsonSerializerOptions.DefaultIgnoreCondition =
-                    JsonIgnoreCondition.WhenWritingNull);
+                    JsonIgnoreCondition.WhenWritingNull;
+
+                // Enum como texto ("Mother"), não o inteiro 1 — igual ao que o banco grava.
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
 
         return services;
     }

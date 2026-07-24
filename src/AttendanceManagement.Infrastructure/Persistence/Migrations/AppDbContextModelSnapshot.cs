@@ -280,6 +280,10 @@ namespace AttendanceManagement.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_enrollment_active")
                         .HasFilter("active");
 
+                    b.HasIndex(new[] { "TransportGroupId" }, "ix_enrollment_active_group")
+                        .HasDatabaseName("ix_enrollment_active_group")
+                        .HasFilter("active");
+
                     b.ToTable("enrollment", (string)null);
                 });
 
@@ -980,7 +984,7 @@ namespace AttendanceManagement.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("GuardianId");
 
-                            b1.ToTable("guardian");
+                            b1.ToTable("guardian", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("GuardianId")
@@ -1068,7 +1072,7 @@ namespace AttendanceManagement.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("SchoolId");
 
-                            b1.ToTable("school");
+                            b1.ToTable("school", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("SchoolId")

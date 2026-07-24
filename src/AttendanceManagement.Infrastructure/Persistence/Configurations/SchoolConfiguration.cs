@@ -25,7 +25,7 @@ internal sealed class SchoolConfiguration : IEntityTypeConfiguration<School>
             .IsUnique()
             .HasDatabaseName("ix_school_transporter_name");
 
-        builder.HasOne<Transporter>()
+        builder.HasOne(x => x.Transporter)
             .WithMany()
             .HasForeignKey(x => x.TransporterId)
             .OnDelete(DeleteBehavior.Restrict);

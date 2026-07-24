@@ -30,22 +30,21 @@ internal sealed class AttendanceSessionConfiguration : IEntityTypeConfiguration<
         builder.HasIndex(x => new { x.TransporterId, x.SessionDate })
             .HasDatabaseName("ix_attendance_session_transporter_date");
 
-        builder.HasOne<Transporter>()
+        builder.HasOne(x => x.Transporter)
             .WithMany()
             .HasForeignKey(x => x.TransporterId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<TransportGroup>()
+        builder.HasOne(x => x.TransportGroup)
             .WithMany()
             .HasForeignKey(x => x.TransportGroupId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<UserAccount>()
+        builder.HasOne(x => x.CreatedByUser)
             .WithMany()
             .HasForeignKey(x => x.CreatedBy)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // vehicle_id e assistant_id são snapshots; sem FK de propósito, para o
-        // histórico sobreviver a mudanças na designação do grupo.
+        // vehicle_id e assistant_id são snapshots; sem FK de propósito.
     }
 }

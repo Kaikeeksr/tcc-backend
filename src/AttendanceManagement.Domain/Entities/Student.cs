@@ -4,10 +4,7 @@ namespace AttendanceManagement.Domain.Entities;
 
 /// <summary>
 /// O menor transportado. Guarda o mínimo de dado pessoal — contato mora no
-/// guardian.
-///
-/// Login é opcional. A regra "todo aluno tem ≥1 guardian" não é constraint de
-/// banco (exigiria trigger); vale na camada de aplicação.
+/// guardian. Login é opcional.
 /// </summary>
 public sealed class Student : SoftDeletableEntity
 {
@@ -35,11 +32,16 @@ public sealed class Student : SoftDeletableEntity
 
     public DateOnly BirthDate { get; private set; }
 
-    /// <summary>Série/turma escolar, ex.: "3°A". Texto livre — cada escola nomeia à sua maneira.</summary>
+    /// <summary>Série/turma escolar, ex.: "3°A". Texto livre.</summary>
     public string? Grade { get; private set; }
 
-    /// <summary>Escola atual. Muda ao longo do tempo; a chamada guarda snapshot.</summary>
     public Guid? SchoolId { get; private set; }
+
+    public Transporter Transporter { get; private set; } = null!;
+
+    public School? School { get; private set; }
+
+    public UserAccount? UserAccount { get; private set; }
 
     public static Result<Student> Create(
         Guid transporterId,
@@ -50,24 +52,24 @@ public sealed class Student : SoftDeletableEntity
     {
         if (transporterId == Guid.Empty)
         {
-            return Result.Failure<Student>(Error.Validation("Student.TransporterRequired", "O transportador é obrigatório."));
+            return Result.Failure<Student>(Error.Validation("Student.TransporterRequired", "Transporter is required."));
         }
 
         if (string.IsNullOrWhiteSpace(name))
         {
-            return Result.Failure<Student>(Error.Validation("Student.NameRequired", "O nome é obrigatório."));
+            return Result.Failure<Student>(Error.Validation("Student.NameRequired", "Name is required."));
         }
 
         if (birthDate > DateOnly.FromDateTime(DateTime.UtcNow))
         {
-            return Result.Failure<Student>(Error.Validation("Student.BirthDateInvalid", "A data de nascimento não pode ser futura."));
+            return Result.Failure<Student>(Error.Validation("Student.BirthDateInvalid", "The birth date cannot be in the future."));
         }
 
         var normalizedGrade = string.IsNullOrWhiteSpace(grade) ? null : grade.Trim();
 
         if (normalizedGrade?.Length > GradeMaxLength)
         {
-            return Result.Failure<Student>(Error.Validation("Student.GradeTooLong", "A turma excede o tamanho máximo."));
+            return Result.Failure<Student>(Error.Validation("Student.GradeTooLong", "The grade exceeds the maximum length."));
         }
 
         var student = new Student(Guid.CreateVersion7(), transporterId, name.Trim(), birthDate)
@@ -99,5 +101,31 @@ public sealed class Student : SoftDeletableEntity
     {
         SchoolId = schoolId == Guid.Empty ? null : schoolId;
         Touch();
+    }
+
+    public Result Update(string? name, DateOnly birthDate, string? grade)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return Result.Failure(Error.Validation("Student.NameRequired", "Name is required."));
+        }
+
+        if (birthDate > DateOnly.FromDateTime(DateTime.UtcNow))
+        {
+            return Result.Failure(Error.Validation("Student.BirthDateInvalid", "The birth date cannot be in the future."));
+        }
+
+        var normalizedGrade = string.IsNullOrWhiteSpace(grade) ? null : grade.Trim();
+
+        if (normalizedGrade?.Length > GradeMaxLength)
+        {
+            return Result.Failure(Error.Validation("Student.GradeTooLong", "The grade exceeds the maximum length."));
+        }
+
+        Name = name.Trim();
+        BirthDate = birthDate;
+        Grade = normalizedGrade;
+        Touch();
+        return Result.Success();
     }
 }

@@ -4,9 +4,9 @@ using AttendanceManagement.Domain.Enums;
 namespace AttendanceManagement.Domain.Entities;
 
 /// <summary>
-/// Identidade global e credencial. Único ponto de autenticação: transporter,
-/// assistant, guardian e (opcionalmente) student apontam para cá.
-/// Guarda só credencial — dado de negócio fica nos perfis.
+/// Identidade e credencial. Único ponto de autenticação: transporter, assistant,
+/// guardian e (opcionalmente) student apontam para cá. Só credencial — dado de
+/// negócio fica nos perfis.
 /// </summary>
 public sealed class UserAccount : AuditableEntity
 {
@@ -47,19 +47,19 @@ public sealed class UserAccount : AuditableEntity
     {
         if (string.IsNullOrWhiteSpace(email))
         {
-            return Result.Failure<UserAccount>(Error.Validation("UserAccount.EmailRequired", "O e-mail é obrigatório."));
+            return Result.Failure<UserAccount>(Error.Validation("UserAccount.EmailRequired", "Email is required."));
         }
 
         var normalizedEmail = email.Trim().ToLowerInvariant();
 
         if (normalizedEmail.Length > EmailMaxLength)
         {
-            return Result.Failure<UserAccount>(Error.Validation("UserAccount.EmailTooLong", "O e-mail excede o tamanho máximo."));
+            return Result.Failure<UserAccount>(Error.Validation("UserAccount.EmailTooLong", "Email exceeds the maximum length."));
         }
 
         if (string.IsNullOrWhiteSpace(passwordHash))
         {
-            return Result.Failure<UserAccount>(Error.Validation("UserAccount.PasswordRequired", "A credencial é obrigatória."));
+            return Result.Failure<UserAccount>(Error.Validation("UserAccount.PasswordRequired", "The credential is required."));
         }
 
         return Result.Success(new UserAccount(

@@ -9,6 +9,7 @@
       Unico pacote da camada, e so de abstracoes (interfaces), nao de implementacao.
       Serve para expor o metodo AddApplication(). Nao traz EF Core nem ASP.NET junto.
     -->
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
 

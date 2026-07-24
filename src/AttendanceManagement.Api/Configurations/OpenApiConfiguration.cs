@@ -1,22 +1,19 @@
-// Na v2 do Microsoft.OpenApi o namespace .Models foi achatado: OpenApiInfo
-// mora direto em Microsoft.OpenApi. Codigo de tutorial antigo ainda usa .Models.
+// Na v2 do Microsoft.OpenApi o namespace .Models foi achatado: OpenApiInfo mora
+// direto em Microsoft.OpenApi.
 using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 
 namespace AttendanceManagement.Api.Configurations;
 
 /// <summary>
-/// Documentacao da API.
-///
-/// No .NET 10 a Microsoft tirou o Swashbuckle do template: o documento OpenAPI
-/// (versao 3.1) passou a ser gerado nativamente pelo Microsoft.AspNetCore.OpenApi.
-/// O Scalar entra so como interface — ele consome o documento, nao o gera.
-///
-/// Os comentarios XML dos controllers entram no documento automaticamente,
-/// porque GenerateDocumentationFile esta ligado no Directory.Build.props.
+/// Documentação da API. No .NET 10 o documento OpenAPI 3.1 é gerado nativamente
+/// pelo Microsoft.AspNetCore.OpenApi; o Scalar entra só como interface. Os
+/// comentários XML dos controllers entram no documento automaticamente.
 /// </summary>
 internal static class OpenApiConfiguration
 {
+    private const string BearerScheme = "Bearer";
+
     public static IServiceCollection AddOpenApiConfiguration(this IServiceCollection services)
     {
         services.AddOpenApi(options =>
@@ -25,12 +22,34 @@ internal static class OpenApiConfiguration
             {
                 document.Info = new OpenApiInfo
                 {
-                    Title = "API de Gestão de Chamadas",
+                    Title = "Attendance Management API",
                     Version = "v1",
-                    Description =
-                        "API do TCC. No momento expõe apenas o slice de exemplo `Alumni`, " +
-                        "usado para validar a arquitetura em camadas ponta a ponta.",
+                    Description = "TCC API for school transport attendance management.",
                 };
+
+                // Declara o esquema Bearer/JWT no documento — sem isso o botão
+                // Authorize do Scalar não teria o que preencher e o token nunca
+                // seria enviado nos endpoints protegidos.
+                document.Components ??= new OpenApiComponents();
+                document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+                document.Components.SecuritySchemes[BearerScheme] = new OpenApiSecurityScheme
+                {
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Cole o token devolvido por /api/auth/login (sem o prefixo 'Bearer').",
+                };
+
+                // Requisito global: o cadeado aparece em todos os endpoints. Os
+                // marcados com [AllowAnonymous] continuam abertos mesmo assim.
+                document.Security =
+                [
+                    new OpenApiSecurityRequirement
+                    {
+                        [new OpenApiSecuritySchemeReference(BearerScheme, document)] = [],
+                    },
+                ];
 
                 return Task.CompletedTask;
             });
@@ -39,19 +58,13 @@ internal static class OpenApiConfiguration
         return services;
     }
 
-    /// <summary>
-    /// Publica o documento OpenAPI e a interface do Scalar.
-    /// </summary>
     public static WebApplication UseOpenApiConfiguration(this WebApplication app)
     {
-        // Documento cru, em /openapi/v1.json.
         app.MapOpenApi();
 
-        // Interface interativa em /scalar. E daqui que voce dispara as
-        // requisicoes para debugar as rotas.
         app.MapScalarApiReference(options =>
         {
-            options.Title = "API de Gestão de Chamadas";
+            options.Title = "Attendance Management API";
             options.DefaultHttpClient = new(ScalarTarget.CSharp, ScalarClient.HttpClient);
         });
 

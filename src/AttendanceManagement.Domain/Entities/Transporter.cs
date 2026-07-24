@@ -4,9 +4,8 @@ using AttendanceManagement.Domain.Enums;
 namespace AttendanceManagement.Domain.Entities;
 
 /// <summary>
-/// O "tio da van" — usuário principal e RAIZ DO TENANT. Todo dado do sistema
-/// pertence a exatamente um transporter, e `Transporter.Id` é o `transporter_id`
-/// propagado pelas demais tabelas.
+/// O "tio da van" — usuário principal e raiz do tenant. Todo dado do sistema
+/// pertence a exatamente um transporter.
 /// </summary>
 public sealed class Transporter : SoftDeletableEntity
 {
@@ -41,12 +40,13 @@ public sealed class Transporter : SoftDeletableEntity
 
     public string? LicenseNumber { get; private set; }
 
-    /// <summary>Categoria da CNH — D ou E para transporte de passageiros.</summary>
     public string? LicenseCategory { get; private set; }
 
     public DateOnly? LicenseExpiry { get; private set; }
 
     public string? BusinessPhone { get; private set; }
+
+    public UserAccount UserAccount { get; private set; } = null!;
 
     public static Result<Transporter> Create(
         Guid userAccountId,
@@ -56,19 +56,19 @@ public sealed class Transporter : SoftDeletableEntity
     {
         if (userAccountId == Guid.Empty)
         {
-            return Result.Failure<Transporter>(Error.Validation("Transporter.UserRequired", "A conta de login é obrigatória."));
+            return Result.Failure<Transporter>(Error.Validation("Transporter.UserRequired", "The login account is required."));
         }
 
         if (string.IsNullOrWhiteSpace(name))
         {
-            return Result.Failure<Transporter>(Error.Validation("Transporter.NameRequired", "O nome é obrigatório."));
+            return Result.Failure<Transporter>(Error.Validation("Transporter.NameRequired", "Name is required."));
         }
 
         var digits = new string((documentNumber ?? string.Empty).Where(char.IsDigit).ToArray());
 
         if (digits.Length == 0)
         {
-            return Result.Failure<Transporter>(Error.Validation("Transporter.DocumentRequired", "O CPF/CNPJ é obrigatório."));
+            return Result.Failure<Transporter>(Error.Validation("Transporter.DocumentRequired", "The CPF/CNPJ is required."));
         }
 
         return Result.Success(new Transporter(

@@ -1,10 +1,6 @@
 namespace AttendanceManagement.Domain.ValueObjects;
 
-/// <summary>
-/// Value object embutido (owned type): vira colunas `address_*` na tabela dona,
-/// sem tabela nem join. Todos os campos são opcionais — dá para cadastrar
-/// parcial e completar depois; lat/long vêm de geocoding.
-/// </summary>
+/// <summary>Value object embutido (owned type): vira colunas <c>address_*</c> na tabela dona.</summary>
 public sealed class Address
 {
     public Address(
@@ -43,7 +39,6 @@ public sealed class Address
 
     public string? City { get; private set; }
 
-    /// <summary>UF, duas letras.</summary>
     public string? State { get; private set; }
 
     public string? PostalCode { get; private set; }

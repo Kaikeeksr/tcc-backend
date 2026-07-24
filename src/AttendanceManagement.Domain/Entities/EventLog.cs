@@ -2,11 +2,7 @@ using AttendanceManagement.Domain.Abstractions;
 
 namespace AttendanceManagement.Domain.Entities;
 
-/// <summary>
-/// Trilha append-only de eventos de domínio: nunca sofre update nem delete.
-/// É o mecanismo de extensão — um evento novo é só um novo valor de
-/// <see cref="EventType"/>, sem migration.
-/// </summary>
+/// <summary>Trilha append-only de eventos de domínio: nunca sofre update nem delete.</summary>
 public sealed class EventLog : Entity
 {
     private EventLog(
@@ -47,6 +43,8 @@ public sealed class EventLog : Entity
 
     /// <summary>Detalhes em JSON (coluna jsonb).</summary>
     public string Payload { get; private set; } = null!;
+
+    public Transporter Transporter { get; private set; } = null!;
 
     public static EventLog Record(
         Guid transporterId,

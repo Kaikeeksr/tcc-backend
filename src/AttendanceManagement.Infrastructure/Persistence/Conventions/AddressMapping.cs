@@ -3,11 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AttendanceManagement.Infrastructure.Persistence.Conventions;
 
-/// <summary>
-/// Mapeamento do value object <see cref="Address"/>, chamado dentro do
-/// <c>OwnsOne</c> de cada dono para os limites das colunas `address_*` ficarem
-/// em um lugar só.
-/// </summary>
+/// <summary>Mapeamento do value object <see cref="Address"/>, reutilizado no <c>OwnsOne</c> de cada dono.</summary>
 internal static class AddressMapping
 {
     public static void Configure<TOwner>(OwnedNavigationBuilder<TOwner, Address> owned)

@@ -5,19 +5,9 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 namespace AttendanceManagement.Api.Configurations;
 
 /// <summary>
-/// Dois endpoints de saude, com papeis diferentes:
-///
-/// /health       - liveness. O processo esta de pe? Nao toca no banco.
-/// /health/ready - readiness. Da para atender requisicao de verdade? Consulta
-///                 o PostgreSQL. E este que prova que a conexao com o
-///                 Clever Cloud esta funcionando.
-///
-/// A distincao importa em deploy: um orquestrador reinicia o container quando
-/// liveness falha, mas apenas tira do balanceador quando readiness falha.
-/// Se o banco cair, reiniciar a API nao resolve nada.
-///
-/// O check do banco em si e registrado no AddInfrastructure, porque so aquela
-/// camada conhece o AppDbContext.
+/// Dois endpoints de saúde: <c>/health</c> (liveness, não toca no banco) e
+/// <c>/health/ready</c> (readiness, consulta o PostgreSQL). A distinção importa
+/// em deploy — reiniciar a API não resolve banco fora do ar.
 /// </summary>
 internal static class HealthCheckConfiguration
 {
@@ -25,7 +15,6 @@ internal static class HealthCheckConfiguration
     {
         app.MapHealthChecks("/health", new HealthCheckOptions
         {
-            // Nenhum check: responde 200 se o processo esta vivo.
             Predicate = _ => false,
         });
 
@@ -38,10 +27,6 @@ internal static class HealthCheckConfiguration
         return app;
     }
 
-    /// <summary>
-    /// Resposta JSON com o detalhe de cada check, em vez do texto puro
-    /// "Healthy" que o ASP.NET Core devolve por padrao.
-    /// </summary>
     private static Task WriteHealthResponseAsync(HttpContext context, HealthReport report)
     {
         context.Response.ContentType = "application/json; charset=utf-8";

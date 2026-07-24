@@ -24,7 +24,7 @@ internal sealed class TransporterConfiguration : IEntityTypeConfiguration<Transp
         builder.HasIndex(x => x.UserAccountId).IsUnique().HasDatabaseName("ix_transporter_user_account");
         builder.HasIndex(x => x.DocumentNumber).IsUnique().HasDatabaseName("ix_transporter_document");
 
-        builder.HasOne<UserAccount>()
+        builder.HasOne(x => x.UserAccount)
             .WithMany()
             .HasForeignKey(x => x.UserAccountId)
             .OnDelete(DeleteBehavior.Restrict);

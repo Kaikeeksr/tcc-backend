@@ -17,15 +17,14 @@ internal sealed class AssistantConfiguration : IEntityTypeConfiguration<Assistan
         builder.Property(x => x.Name).IsRequired().HasMaxLength(150);
 
         builder.HasIndex(x => x.TransporterId).HasDatabaseName("ix_assistant_transporter");
-        // Uma conta = um assistant = um transporter. Garante "não pertence a dois".
         builder.HasIndex(x => x.UserAccountId).IsUnique().HasDatabaseName("ix_assistant_user_account");
 
-        builder.HasOne<Transporter>()
+        builder.HasOne(x => x.Transporter)
             .WithMany()
             .HasForeignKey(x => x.TransporterId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<UserAccount>()
+        builder.HasOne(x => x.UserAccount)
             .WithMany()
             .HasForeignKey(x => x.UserAccountId)
             .OnDelete(DeleteBehavior.Restrict);

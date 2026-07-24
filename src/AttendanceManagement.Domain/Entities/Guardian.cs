@@ -4,9 +4,8 @@ using AttendanceManagement.Domain.ValueObjects;
 namespace AttendanceManagement.Domain.Entities;
 
 /// <summary>
-/// Responsável (pai/mãe/avó/tutor). Concentra os dados pessoais de contato —
-/// é o centro de gravidade da LGPD, e por isso a anonimização de erasure toca
-/// poucas tabelas. Login obrigatório.
+/// Responsável (pai/mãe/avó/tutor). Concentra os dados pessoais de contato — o
+/// centro de gravidade da LGPD. Login obrigatório.
 /// </summary>
 public sealed class Guardian : SoftDeletableEntity
 {
@@ -37,10 +36,13 @@ public sealed class Guardian : SoftDeletableEntity
 
     public string? Whatsapp { get; private set; }
 
-    /// <summary>Canal de contato — pode diferir do e-mail de login.</summary>
     public string? ContactEmail { get; private set; }
 
     public Address Address { get; private set; } = null!;
+
+    public Transporter Transporter { get; private set; } = null!;
+
+    public UserAccount UserAccount { get; private set; } = null!;
 
     public static Result<Guardian> Create(
         Guid transporterId,
@@ -50,17 +52,17 @@ public sealed class Guardian : SoftDeletableEntity
     {
         if (transporterId == Guid.Empty)
         {
-            return Result.Failure<Guardian>(Error.Validation("Guardian.TransporterRequired", "O transportador é obrigatório."));
+            return Result.Failure<Guardian>(Error.Validation("Guardian.TransporterRequired", "Transporter is required."));
         }
 
         if (userAccountId == Guid.Empty)
         {
-            return Result.Failure<Guardian>(Error.Validation("Guardian.UserRequired", "A conta de login é obrigatória (responsável sempre loga)."));
+            return Result.Failure<Guardian>(Error.Validation("Guardian.UserRequired", "The login account is required (a guardian always logs in)."));
         }
 
         if (string.IsNullOrWhiteSpace(name))
         {
-            return Result.Failure<Guardian>(Error.Validation("Guardian.NameRequired", "O nome é obrigatório."));
+            return Result.Failure<Guardian>(Error.Validation("Guardian.NameRequired", "Name is required."));
         }
 
         return Result.Success(new Guardian(
@@ -84,6 +86,18 @@ public sealed class Guardian : SoftDeletableEntity
     {
         Address = address;
         Touch();
+    }
+
+    public Result Rename(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return Result.Failure(Error.Validation("Guardian.NameRequired", "Name is required."));
+        }
+
+        Name = name.Trim();
+        Touch();
+        return Result.Success();
     }
 
     private static string? Normalize(string? value) =>

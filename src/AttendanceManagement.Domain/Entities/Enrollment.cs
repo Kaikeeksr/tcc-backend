@@ -3,9 +3,8 @@ using AttendanceManagement.Domain.Abstractions;
 namespace AttendanceManagement.Domain.Entities;
 
 /// <summary>
-/// Vínculo N:N student ↔ transport_group. Hoje há uma matrícula ativa por
-/// aluno, mas o modelo já é N:N para permitir múltiplos grupos sem quebra.
-/// Temporal: trocar de grupo encerra a matrícula antiga em vez de apagá-la.
+/// Vínculo N:N student ↔ transport_group. Temporal: trocar de grupo encerra a
+/// matrícula antiga em vez de apagá-la.
 /// </summary>
 public sealed class Enrollment : AuditableEntity
 {
@@ -32,16 +31,20 @@ public sealed class Enrollment : AuditableEntity
 
     public DateTime? EndedAtUtc { get; private set; }
 
+    public Student Student { get; private set; } = null!;
+
+    public TransportGroup TransportGroup { get; private set; } = null!;
+
     public static Result<Enrollment> Create(Guid studentId, Guid transportGroupId)
     {
         if (studentId == Guid.Empty)
         {
-            return Result.Failure<Enrollment>(Error.Validation("Enrollment.StudentRequired", "O aluno é obrigatório."));
+            return Result.Failure<Enrollment>(Error.Validation("Enrollment.StudentRequired", "Student is required."));
         }
 
         if (transportGroupId == Guid.Empty)
         {
-            return Result.Failure<Enrollment>(Error.Validation("Enrollment.GroupRequired", "O grupo é obrigatório."));
+            return Result.Failure<Enrollment>(Error.Validation("Enrollment.GroupRequired", "Transport group is required."));
         }
 
         return Result.Success(new Enrollment(Guid.CreateVersion7(), studentId, transportGroupId));

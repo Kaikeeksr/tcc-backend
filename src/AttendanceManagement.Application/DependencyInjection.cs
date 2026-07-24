@@ -1,21 +1,43 @@
+using System.Reflection;
+using System.Text.Json.Serialization;
+using AttendanceManagement.Application.Assistants;
+using AttendanceManagement.Application.Authentication;
+using AttendanceManagement.Application.Enrollments;
+using AttendanceManagement.Application.Guardians;
+using AttendanceManagement.Application.GuardianStudents;
+using AttendanceManagement.Application.Schools;
+using AttendanceManagement.Application.Students;
+using AttendanceManagement.Application.TransportGroups;
+using AttendanceManagement.Application.Transporters;
+using AttendanceManagement.Application.Vehicles;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AttendanceManagement.Application;
 
-/// <summary>
-/// Registro dos servicos desta camada.
-///
-/// Manter isto aqui (e nao no Program.cs) significa que a Api nao precisa saber
-/// quais classes concretas existem na Application. Cada caso de uso novo
-/// (services) e registrado aqui, nao no composition root.
-/// </summary>
 public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        // Ainda sem casos de uso: o schema do dominio foi implementado primeiro.
-        // Os services (scoped, um por requisicao) entram aqui conforme a
-        // superficie da API for construida.
+        services.AddScoped<TransportTeamService>();
+        services.AddScoped<AuthenticationService>();
+        services.AddScoped<VehicleService>();
+        services.AddScoped<SchoolService>();
+        services.AddScoped<TransportGroupService>();
+        services.AddScoped<StudentService>();
+        services.AddScoped<AssistantService>();
+        services.AddScoped<GuardianService>();
+        services.AddScoped<EnrollmentService>();
+        services.AddScoped<GuardianStudentService>();
+
+        // Todos os AbstractValidator<> desta assembly viram IValidator<T> escopados.
+        services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+
+        // Nomes de campo nos erros de validação saem em snake_case (o JsonPropertyName
+        // do contrato), casando com o corpo que o cliente enviou.
+        ValidatorOptions.Global.PropertyNameResolver = (_, member, _) =>
+            member?.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? member?.Name;
+
         return services;
     }
 }

@@ -1,18 +1,19 @@
 using AttendanceManagement.Application.Abstractions;
+using AttendanceManagement.Infrastructure.Authentication;
 using AttendanceManagement.Infrastructure.Persistence;
+using AttendanceManagement.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Npgsql;
 
 namespace AttendanceManagement.Infrastructure;
 
 /// <summary>
-/// Composition root da persistencia.
-///
-/// Este metodo e a UNICA coisa que o Program.cs conhece da Infrastructure.
-/// Trocar PostgreSQL por outro banco significa reescrever este arquivo e o
-/// repositorio — nenhuma linha da Api, Application ou Domain muda.
+/// Composition root da persistência. É a única coisa que o Program.cs conhece da
+/// Infrastructure; todo acoplamento com PostgreSQL vive aqui.
 /// </summary>
 public static class DependencyInjection
 {
@@ -26,54 +27,72 @@ public static class DependencyInjection
 
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            // Falhar no boot com mensagem clara e melhor do que falhar na primeira
-            // requisicao com NullReference. O TemplateCamadas deixava a connection
-            // string vazia e ninguem percebia ate o runtime.
             throw new InvalidOperationException(
                 "Connection string 'DefaultConnection' não configurada. " +
                 "Rode: dotnet user-secrets set \"ConnectionStrings:DefaultConnection\" \"<...>\" " +
                 "--project src/AttendanceManagement.Api");
         }
 
-        // NpgsqlDataSource como singleton: e ele que mantem o pool de conexoes.
-        // Criar um por requisicao jogaria fora o pooling e estouraria o limite
-        // de conexoes do plano do Clever Cloud.
+        // Singleton porque é ele que mantém o pool de conexões.
         services.AddSingleton(_ => new NpgsqlDataSourceBuilder(connectionString).Build());
 
-        // AddDbContextPool reaproveita instancias de DbContext entre requisicoes
-        // (reseta o estado interno em vez de alocar de novo).
         services.AddDbContextPool<AppDbContext>((serviceProvider, options) =>
         {
             options.UseNpgsql(
                 serviceProvider.GetRequiredService<NpgsqlDataSource>(),
                 npgsql => npgsql.EnableRetryOnFailure(
-                    // O banco esta na nuvem, do outro lado da internet: oscilacao
-                    // de rede e normal e nao deveria virar erro para o usuario.
                     maxRetryCount: 3,
                     maxRetryDelay: TimeSpan.FromSeconds(5),
                     errorCodesToAdd: null));
 
-            // Tabelas e colunas em snake_case (attendance_record, created_at_utc)
-            // em vez de PascalCase. E a convencao do PostgreSQL: sem isso, todo
-            // identificador precisaria de aspas duplas ao consultar no psql/DBeaver.
             options.UseSnakeCaseNamingConvention();
-
-            // Leitura sem change tracking por padrao: menos alocacao e nenhum
-            // snapshot de entidade. Escrita nao e afetada — Add/Update continuam
-            // rastreando normalmente.
             options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+
+            // Dependentes históricos (chamada, event_log) sobrevivem de propósito
+            // ao soft delete do principal; propagar o filtro para eles destruiria a
+            // trilha de auditoria, então o warning é o comportamento desejado.
+            options.ConfigureWarnings(warnings => warnings.Ignore(
+                CoreEventId.PossibleIncorrectRequiredNavigationWithQueryFilterInteractionWarning));
         });
 
-        // Repositorios concretos entram aqui conforme os casos de uso surgem.
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<ITransporterRepository, TransporterRepository>();
+        services.AddScoped<IUserAccountRepository, UserAccountRepository>();
+        services.AddScoped<IVehicleRepository, VehicleRepository>();
+        services.AddScoped<ISchoolRepository, SchoolRepository>();
+        services.AddScoped<ITransportGroupRepository, TransportGroupRepository>();
+        services.AddScoped<IStudentRepository, StudentRepository>();
+        services.AddScoped<IAssistantRepository, AssistantRepository>();
+        services.AddScoped<IGuardianRepository, GuardianRepository>();
+        services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+        services.AddScoped<IGuardianStudentRepository, GuardianStudentRepository>();
 
-        // Health check do banco. Registrado aqui porque so esta camada conhece
-        // o AppDbContext; a Api apenas expoe o endpoint /health/ready.
+        AddAuthentication(services, configuration);
+
         services.AddHealthChecks()
             .AddDbContextCheck<AppDbContext>(
                 name: "postgresql",
                 tags: ["ready"]);
 
         return services;
+    }
+
+    private static void AddAuthentication(IServiceCollection services, IConfiguration configuration)
+    {
+        // Valida a seção Jwt no boot. Binding pelo indexador (não .Get<T>()) para
+        // não puxar o pacote do binder nesta camada não-web.
+        var jwtSection = configuration.GetSection(JwtOptions.SectionName);
+        var jwtOptions = new JwtOptions
+        {
+            Issuer = jwtSection["Issuer"] ?? string.Empty,
+            Audience = jwtSection["Audience"] ?? string.Empty,
+            SigningKey = jwtSection["SigningKey"] ?? string.Empty,
+            ExpirationMinutes = int.TryParse(jwtSection["ExpirationMinutes"], out var minutes) ? minutes : 120,
+        };
+        jwtOptions.Validate();
+        services.AddSingleton(Options.Create(jwtOptions));
+
+        services.AddSingleton<IPasswordHasher, PasswordHasher>();
+        services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
     }
 }

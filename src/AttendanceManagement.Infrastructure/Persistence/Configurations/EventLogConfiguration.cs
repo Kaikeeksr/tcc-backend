@@ -20,16 +20,14 @@ internal sealed class EventLogConfiguration : IEntityTypeConfiguration<EventLog>
 
         builder.HasIndex(x => new { x.TransporterId, x.OccurredAtUtc })
             .HasDatabaseName("ix_event_log_transporter_date");
-        // Linha do tempo de um agregado específico.
         builder.HasIndex(x => new { x.AggregateType, x.AggregateId, x.OccurredAtUtc })
             .HasDatabaseName("ix_event_log_aggregate");
 
-        builder.HasOne<Transporter>()
+        builder.HasOne(x => x.Transporter)
             .WithMany()
             .HasForeignKey(x => x.TransporterId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // actor_user_id e aggregate_id são referências soltas (aggregate_id é
-        // polimórfico); sem FK de propósito.
+        // actor_user_id e aggregate_id (polimórfico) são referências soltas; sem FK.
     }
 }

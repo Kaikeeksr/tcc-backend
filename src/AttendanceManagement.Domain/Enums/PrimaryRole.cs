@@ -1,9 +1,6 @@
 namespace AttendanceManagement.Domain.Enums;
 
-/// <summary>
-/// Atalho para rotear a tela inicial do app. O papel real deriva de qual perfil
-/// referencia a conta.
-/// </summary>
+/// <summary>Roteia a tela inicial do app. O papel real deriva de qual perfil referencia a conta.</summary>
 public enum PrimaryRole
 {
     Transporter = 0,

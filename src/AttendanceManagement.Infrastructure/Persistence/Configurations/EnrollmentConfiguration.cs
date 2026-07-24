@@ -16,18 +16,24 @@ internal sealed class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollm
 
         builder.HasIndex(x => x.TransportGroupId).HasDatabaseName("ix_enrollment_transport_group");
         builder.HasIndex(x => x.StudentId).HasDatabaseName("ix_enrollment_student");
-        // Evita duas matrículas ativas do mesmo aluno no mesmo grupo.
+
+        // Índice parcial: com `active` no filtro (não nas colunas), o Postgres
+        // resolve o count() de alunos por grupo só pelo índice, sem visitar a heap.
+        builder.HasIndex(x => x.TransportGroupId, "ix_enrollment_active_group")
+            .HasFilter("active")
+            .HasDatabaseName("ix_enrollment_active_group");
+
         builder.HasIndex(x => new { x.StudentId, x.TransportGroupId })
             .IsUnique()
             .HasFilter("active")
             .HasDatabaseName("ix_enrollment_active");
 
-        builder.HasOne<Student>()
+        builder.HasOne(x => x.Student)
             .WithMany()
             .HasForeignKey(x => x.StudentId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<TransportGroup>()
+        builder.HasOne(x => x.TransportGroup)
             .WithMany()
             .HasForeignKey(x => x.TransportGroupId)
             .OnDelete(DeleteBehavior.Restrict);

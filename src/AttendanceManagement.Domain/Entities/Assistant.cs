@@ -2,11 +2,7 @@ using AttendanceManagement.Domain.Abstractions;
 
 namespace AttendanceManagement.Domain.Entities;
 
-/// <summary>
-/// O monitor da van: login próprio, pertencente a EXATAMENTE UM transporter.
-/// Não tem permissão própria — enxerga as mesmas turmas do transporter porque
-/// compartilha o `transporter_id`.
-/// </summary>
+/// <summary>O monitor da van: login próprio, pertencente a exatamente um transporter.</summary>
 public sealed class Assistant : SoftDeletableEntity
 {
     private Assistant(Guid id, Guid transporterId, Guid userAccountId, string name)
@@ -27,23 +23,39 @@ public sealed class Assistant : SoftDeletableEntity
 
     public string Name { get; private set; } = null!;
 
+    public Transporter Transporter { get; private set; } = null!;
+
+    public UserAccount UserAccount { get; private set; } = null!;
+
     public static Result<Assistant> Create(Guid transporterId, Guid userAccountId, string? name)
     {
         if (transporterId == Guid.Empty)
         {
-            return Result.Failure<Assistant>(Error.Validation("Assistant.TransporterRequired", "O transportador é obrigatório."));
+            return Result.Failure<Assistant>(Error.Validation("Assistant.TransporterRequired", "Transporter is required."));
         }
 
         if (userAccountId == Guid.Empty)
         {
-            return Result.Failure<Assistant>(Error.Validation("Assistant.UserRequired", "A conta de login é obrigatória."));
+            return Result.Failure<Assistant>(Error.Validation("Assistant.UserRequired", "The login account is required."));
         }
 
         if (string.IsNullOrWhiteSpace(name))
         {
-            return Result.Failure<Assistant>(Error.Validation("Assistant.NameRequired", "O nome é obrigatório."));
+            return Result.Failure<Assistant>(Error.Validation("Assistant.NameRequired", "Name is required."));
         }
 
         return Result.Success(new Assistant(Guid.CreateVersion7(), transporterId, userAccountId, name.Trim()));
+    }
+
+    public Result Rename(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return Result.Failure(Error.Validation("Assistant.NameRequired", "Name is required."));
+        }
+
+        Name = name.Trim();
+        Touch();
+        return Result.Success();
     }
 }

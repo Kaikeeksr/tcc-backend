@@ -1,13 +1,6 @@
 namespace AttendanceManagement.Api.Configurations;
 
-/// <summary>
-/// CORS dirigido por configuracao.
-///
-/// O TemplateCamadas usava AllowAnyOrigin fixo no codigo. Funciona em
-/// desenvolvimento e vira problema em producao, onde qualquer site passaria a
-/// poder chamar a API pelo navegador do seu usuario. Aqui as origens vem do
-/// appsettings, entao dev e producao se configuram sem recompilar.
-/// </summary>
+/// <summary>CORS dirigido por configuração (seção <c>Cors:AllowedOrigins</c>).</summary>
 internal static class CorsConfiguration
 {
     public const string PolicyName = "DefaultCorsPolicy";
@@ -24,9 +17,8 @@ internal static class CorsConfiguration
         {
             if (allowedOrigins.Length == 0)
             {
-                // Sem origem configurada (caso do ambiente local): libera geral.
-                // AllowAnyOrigin e AllowCredentials sao mutuamente exclusivos —
-                // o navegador rejeita a combinacao.
+                // Sem origem configurada (ambiente local): libera geral. AllowAnyOrigin
+                // e AllowCredentials são mutuamente exclusivos.
                 policy.AllowAnyOrigin()
                       .AllowAnyMethod()
                       .AllowAnyHeader();

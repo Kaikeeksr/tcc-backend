@@ -27,12 +27,12 @@ internal sealed class GuardianConfiguration : IEntityTypeConfiguration<Guardian>
         builder.HasIndex(x => x.TransporterId).HasDatabaseName("ix_guardian_transporter");
         builder.HasIndex(x => x.UserAccountId).HasDatabaseName("ix_guardian_user_account");
 
-        builder.HasOne<Transporter>()
+        builder.HasOne(x => x.Transporter)
             .WithMany()
             .HasForeignKey(x => x.TransporterId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<UserAccount>()
+        builder.HasOne(x => x.UserAccount)
             .WithMany()
             .HasForeignKey(x => x.UserAccountId)
             .OnDelete(DeleteBehavior.Restrict);

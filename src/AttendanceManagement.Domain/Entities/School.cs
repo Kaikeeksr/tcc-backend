@@ -3,10 +3,7 @@ using AttendanceManagement.Domain.ValueObjects;
 
 namespace AttendanceManagement.Domain.Entities;
 
-/// <summary>
-/// Escola, cadastrada por transporter. Liga-se ao STUDENT, não ao grupo — por
-/// isso um transport_group pode ter alunos de escolas diferentes.
-/// </summary>
+/// <summary>Escola, cadastrada por transporter. Liga-se ao student, não ao grupo.</summary>
 public sealed class School : SoftDeletableEntity
 {
     public const int NameMaxLength = 150;
@@ -29,16 +26,18 @@ public sealed class School : SoftDeletableEntity
 
     public Address Address { get; private set; } = null!;
 
+    public Transporter Transporter { get; private set; } = null!;
+
     public static Result<School> Create(Guid transporterId, string? name, Address? address)
     {
         if (transporterId == Guid.Empty)
         {
-            return Result.Failure<School>(Error.Validation("School.TransporterRequired", "O transportador é obrigatório."));
+            return Result.Failure<School>(Error.Validation("School.TransporterRequired", "Transporter is required."));
         }
 
         if (string.IsNullOrWhiteSpace(name))
         {
-            return Result.Failure<School>(Error.Validation("School.NameRequired", "O nome é obrigatório."));
+            return Result.Failure<School>(Error.Validation("School.NameRequired", "Name is required."));
         }
 
         return Result.Success(new School(
@@ -52,5 +51,18 @@ public sealed class School : SoftDeletableEntity
     {
         Address = address;
         Touch();
+    }
+
+    public Result Update(string? name, Address? address)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return Result.Failure(Error.Validation("School.NameRequired", "Name is required."));
+        }
+
+        Name = name.Trim();
+        Address = address ?? Address.Empty();
+        Touch();
+        return Result.Success();
     }
 }

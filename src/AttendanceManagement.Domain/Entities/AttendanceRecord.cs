@@ -3,12 +3,7 @@ using AttendanceManagement.Domain.Enums;
 
 namespace AttendanceManagement.Domain.Entities;
 
-/// <summary>
-/// A linha de um aluno dentro de uma chamada. Uma por (sessão, aluno).
-///
-/// O caso "retirado pelo responsável" é tipado aqui, e não escondido em JSON,
-/// para a tela do transportador ser uma consulta indexada simples.
-/// </summary>
+/// <summary>A linha de um aluno dentro de uma chamada. Uma por (sessão, aluno).</summary>
 public sealed class AttendanceRecord : AuditableEntity
 {
     public const int JustificationMaxLength = 500;
@@ -58,6 +53,18 @@ public sealed class AttendanceRecord : AuditableEntity
 
     public Guid RecordedBy { get; private set; }
 
+    public AttendanceSession AttendanceSession { get; private set; } = null!;
+
+    public Student Student { get; private set; } = null!;
+
+    public Transporter Transporter { get; private set; } = null!;
+
+    public Guardian? PickedUpByGuardian { get; private set; }
+
+    public Guardian? JustifiedByGuardian { get; private set; }
+
+    public UserAccount RecordedByUser { get; private set; } = null!;
+
     public static Result<AttendanceRecord> Mark(
         Guid attendanceSessionId,
         Guid studentId,
@@ -82,10 +89,7 @@ public sealed class AttendanceRecord : AuditableEntity
             schoolId == Guid.Empty ? null : schoolId));
     }
 
-    /// <summary>
-    /// Registra que o responsável retirou o aluno. A permissão de retirada
-    /// (`GuardianStudent.CanPickup`) é validada na camada de aplicação.
-    /// </summary>
+    /// <summary>Permissão de retirada (<c>GuardianStudent.CanPickup</c>) é validada na camada de aplicação.</summary>
     public static Result<AttendanceRecord> MarkPickedUpByGuardian(
         Guid attendanceSessionId,
         Guid studentId,
@@ -103,7 +107,7 @@ public sealed class AttendanceRecord : AuditableEntity
 
         if (pickedUpByGuardianId == Guid.Empty)
         {
-            return Result.Failure<AttendanceRecord>(Error.Validation("AttendanceRecord.GuardianRequired", "O responsável que retirou é obrigatório."));
+            return Result.Failure<AttendanceRecord>(Error.Validation("AttendanceRecord.GuardianRequired", "The guardian who picked up is required."));
         }
 
         var record = new AttendanceRecord(
@@ -143,22 +147,22 @@ public sealed class AttendanceRecord : AuditableEntity
     {
         if (sessionId == Guid.Empty)
         {
-            return Result.Failure(Error.Validation("AttendanceRecord.SessionRequired", "A sessão é obrigatória."));
+            return Result.Failure(Error.Validation("AttendanceRecord.SessionRequired", "The session is required."));
         }
 
         if (studentId == Guid.Empty)
         {
-            return Result.Failure(Error.Validation("AttendanceRecord.StudentRequired", "O aluno é obrigatório."));
+            return Result.Failure(Error.Validation("AttendanceRecord.StudentRequired", "Student is required."));
         }
 
         if (transporterId == Guid.Empty)
         {
-            return Result.Failure(Error.Validation("AttendanceRecord.TransporterRequired", "O transportador é obrigatório."));
+            return Result.Failure(Error.Validation("AttendanceRecord.TransporterRequired", "Transporter is required."));
         }
 
         if (recordedBy == Guid.Empty)
         {
-            return Result.Failure(Error.Validation("AttendanceRecord.RecordedByRequired", "O autor do registro é obrigatório."));
+            return Result.Failure(Error.Validation("AttendanceRecord.RecordedByRequired", "The record author is required."));
         }
 
         return Result.Success();

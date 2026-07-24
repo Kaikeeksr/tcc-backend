@@ -16,24 +16,22 @@ internal sealed class StudentConfiguration : IEntityTypeConfiguration<Student>
 
         builder.Property(x => x.Name).IsRequired().HasMaxLength(Student.NameMaxLength);
         builder.Property(x => x.BirthDate).IsRequired();
-        // Série escolar ("3°A"), opcional.
         builder.Property(x => x.Grade).HasMaxLength(Student.GradeMaxLength);
 
         builder.HasIndex(x => x.TransporterId).HasDatabaseName("ix_student_transporter");
-        // Monta a rota da volta: quais alunos buscar em cada escola.
         builder.HasIndex(x => x.SchoolId).HasDatabaseName("ix_student_school");
 
-        builder.HasOne<Transporter>()
+        builder.HasOne(x => x.Transporter)
             .WithMany()
             .HasForeignKey(x => x.TransporterId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<School>()
+        builder.HasOne(x => x.School)
             .WithMany()
             .HasForeignKey(x => x.SchoolId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<UserAccount>()
+        builder.HasOne(x => x.UserAccount)
             .WithMany()
             .HasForeignKey(x => x.UserAccountId)
             .OnDelete(DeleteBehavior.Restrict);

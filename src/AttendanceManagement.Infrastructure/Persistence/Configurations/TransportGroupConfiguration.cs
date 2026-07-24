@@ -19,17 +19,17 @@ internal sealed class TransportGroupConfiguration : IEntityTypeConfiguration<Tra
 
         builder.HasIndex(x => x.TransporterId).HasDatabaseName("ix_transport_group_transporter");
 
-        builder.HasOne<Transporter>()
+        builder.HasOne(x => x.Transporter)
             .WithMany()
             .HasForeignKey(x => x.TransporterId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<Vehicle>()
+        builder.HasOne(x => x.Vehicle)
             .WithMany()
             .HasForeignKey(x => x.VehicleId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<Assistant>()
+        builder.HasOne(x => x.Assistant)
             .WithMany()
             .HasForeignKey(x => x.AssistantId)
             .OnDelete(DeleteBehavior.Restrict);

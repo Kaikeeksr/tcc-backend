@@ -1,5 +1,4 @@
 <Project>
-
   <!--
     Central Package Management: a versao de cada pacote e declarada UMA vez aqui.
     Nos .csproj o PackageReference aparece sem atributo Version.
@@ -8,11 +7,14 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
-
   <ItemGroup>
     <!-- Api -->
+    <PackageVersion Include="FluentValidation" Version="12.1.1" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
     <PackageVersion Include="Scalar.AspNetCore" Version="2.16.15" />
+    <!-- Validacao do Bearer token. Traz Microsoft.IdentityModel.* 8.19.2 por baixo. -->
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
     <!--
       Pin de seguranca (dependencia transitiva, nao usada diretamente pelo codigo).
       Microsoft.AspNetCore.OpenApi 10.0.10 traz Microsoft.OpenApi 2.0.0, que tem a
@@ -25,8 +27,9 @@
     -->
     <PackageVersion Include="Microsoft.OpenApi" Version="2.11.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10" />
-
     <!-- Infrastructure -->
+    <!-- Assinatura do JWT. Fixado em 8.19.2 para casar com o que o JwtBearer resolve na Api. -->
+    <PackageVersion Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.19.2" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.10" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />
@@ -34,5 +37,4 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.10" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.10" />
   </ItemGroup>
-
 </Project>
