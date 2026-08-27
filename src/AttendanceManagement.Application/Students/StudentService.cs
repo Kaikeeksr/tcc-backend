@@ -1,11 +1,16 @@
 using AttendanceManagement.Application.Abstractions;
 using AttendanceManagement.Domain.Abstractions;
 using AttendanceManagement.Domain.Entities;
+using AttendanceManagement.Domain.Enums;
 
 namespace AttendanceManagement.Application.Students;
 
 /// <summary>Casos de uso do aluno, sempre escopados ao tenant do chamador.</summary>
-public sealed class StudentService(IStudentRepository repository, IUnitOfWork unitOfWork)
+public sealed class StudentService(
+    IStudentRepository repository,
+    IUserAccountRepository userAccounts,
+    IPasswordHasher passwordHasher,
+    IUnitOfWork unitOfWork)
 {
     public Task<IReadOnlyList<StudentResponse>> ListAsync(
         Guid transporterId,
@@ -106,6 +111,52 @@ public sealed class StudentService(IStudentRepository repository, IUnitOfWork un
         return Result.Success();
     }
 
+    /// <summary>Cria o login opcional do aluno, para ele acompanhar a própria frequência no app.</summary>
+    public async Task<Result<StudentResponse>> CreateLoginAsync(
+        Guid transporterId,
+        Guid id,
+        CreateStudentLoginRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var student = await repository.GetForUpdateAsync(transporterId, id, cancellationToken);
+        if (student is null)
+        {
+            return Result.Failure<StudentResponse>(Error.NotFound("Student.NotFound", "Student not found."));
+        }
+
+        if (student.UserAccountId is not null)
+        {
+            return Result.Failure<StudentResponse>(Error.Conflict("Student.AlreadyHasLogin", "This student already has a login."));
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Password))
+        {
+            return Result.Failure<StudentResponse>(Error.Validation("Student.PasswordRequired", "Password is required."));
+        }
+
+        if (await userAccounts.EmailExistsAsync(request.Email ?? string.Empty, cancellationToken))
+        {
+            return Result.Failure<StudentResponse>(Error.Conflict("Student.EmailInUse", "An account with this email already exists."));
+        }
+
+        var accountResult = UserAccount.Create(request.Email, null, passwordHasher.Hash(request.Password), PrimaryRole.Student);
+        if (accountResult.IsFailure)
+        {
+            return Result.Failure<StudentResponse>(accountResult.Error);
+        }
+
+        var account = accountResult.Value;
+        account.Activate();
+
+        userAccounts.Add(account);
+        student.SetLogin(account.Id);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return Result.Success(ToResponse(student));
+    }
+
     private async Task<Result> EnsureSchoolAsync(Guid transporterId, Guid? schoolId, CancellationToken cancellationToken)
     {
         if (schoolId is not { } id || id == Guid.Empty)
@@ -119,5 +170,5 @@ public sealed class StudentService(IStudentRepository repository, IUnitOfWork un
     }
 
     private static StudentResponse ToResponse(Student student) =>
-        new(student.Id, student.Name, student.BirthDate, student.Grade, student.SchoolId);
+        new(student.Id, student.Name, student.BirthDate, student.Grade, student.SchoolId, student.UserAccountId is not null);
 }

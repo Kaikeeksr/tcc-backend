@@ -22,14 +22,14 @@ internal sealed class StudentRepository(AppDbContext context) : IStudentReposito
     public Task<StudentResponse?> GetByIdAsync(Guid transporterId, Guid id, CancellationToken cancellationToken = default) =>
         context.Students
             .Where(s => s.Id == id && s.TransporterId == transporterId)
-            .Select(s => new StudentResponse(s.Id, s.Name, s.BirthDate, s.Grade, s.SchoolId))
+            .Select(s => new StudentResponse(s.Id, s.Name, s.BirthDate, s.Grade, s.SchoolId, s.UserAccountId != null))
             .FirstOrDefaultAsync(cancellationToken);
 
     public async Task<IReadOnlyList<StudentResponse>> ListAsync(Guid transporterId, CancellationToken cancellationToken = default) =>
         await context.Students
             .Where(s => s.TransporterId == transporterId)
             .OrderBy(s => s.Name)
-            .Select(s => new StudentResponse(s.Id, s.Name, s.BirthDate, s.Grade, s.SchoolId))
+            .Select(s => new StudentResponse(s.Id, s.Name, s.BirthDate, s.Grade, s.SchoolId, s.UserAccountId != null))
             .ToListAsync(cancellationToken);
 
     public Task<bool> SchoolExistsAsync(Guid transporterId, Guid schoolId, CancellationToken cancellationToken = default) =>

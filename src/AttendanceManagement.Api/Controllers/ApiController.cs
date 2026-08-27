@@ -22,6 +22,9 @@ public abstract class ApiController : ControllerBase
     /// <summary>Conta de login do token (claim <c>sub</c>), para campos de auditoria.</summary>
     protected Guid CurrentUserId => ReadGuidClaim(AuthClaims.Subject);
 
+    /// <summary>Id do perfil (guardian/student/assistant/transporter) do token (claim <c>profile_id</c>).</summary>
+    protected Guid ProfileId => ReadGuidClaim(AuthClaims.ProfileId);
+
     private Guid ReadGuidClaim(string claimType) =>
         Guid.TryParse(User.FindFirstValue(claimType), out var value) ? value : Guid.Empty;
 

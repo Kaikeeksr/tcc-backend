@@ -28,3 +28,12 @@ public sealed class UpdateStudentRequestValidator : AbstractValidator<UpdateStud
         RuleFor(x => x.Grade).MaximumLength(Student.GradeMaxLength);
     }
 }
+
+public sealed class CreateStudentLoginRequestValidator : AbstractValidator<CreateStudentLoginRequest>
+{
+    public CreateStudentLoginRequestValidator()
+    {
+        RuleFor(x => x.Email).NotEmpty().EmailAddress();
+        RuleFor(x => x.Password).NotEmpty().MinimumLength(8);
+    }
+}

@@ -127,6 +127,26 @@ public sealed class AttendanceRecord : AuditableEntity
         return Result.Success(record);
     }
 
+    /// <summary>Corrige o status de um registro já existente (ex.: de Present para Late).</summary>
+    public void UpdateStatus(AttendanceStatus status)
+    {
+        Status = status;
+        Touch();
+    }
+
+    /// <summary>
+    /// Converte um registro existente em "retirado pelo responsável". A permissão
+    /// (<c>GuardianStudent.CanPickup</c>) é validada na camada de aplicação.
+    /// </summary>
+    public void MarkPickedUp(Guid guardianId, string? justification)
+    {
+        Status = AttendanceStatus.PickedUpByGuardian;
+        PickedUpByGuardianId = guardianId;
+        Justification = Trim(justification);
+        JustifiedBy = guardianId;
+        Touch();
+    }
+
     public void Justify(string? justification, Guid? justifiedBy)
     {
         Justification = Trim(justification);

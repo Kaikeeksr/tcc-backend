@@ -23,4 +23,7 @@ public interface IGuardianStudentRepository
     Task<bool> ActivePairExistsAsync(Guid guardianId, Guid studentId, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<GuardianStudentResponse>> ListByStudentAsync(Guid studentId, CancellationToken cancellationToken = default);
+
+    /// <summary>Filhos ativos vinculados a um responsável (pela tela "meus filhos").</summary>
+    Task<IReadOnlyList<MyChildResponse>> ListByGuardianAsync(Guid guardianId, CancellationToken cancellationToken = default);
 }
