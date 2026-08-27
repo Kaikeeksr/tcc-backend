@@ -25,6 +25,18 @@ public sealed class GuardianStudentService(IGuardianStudentRepository repository
         return Result.Success(await repository.ListByStudentAsync(studentId, cancellationToken));
     }
 
+    public Task<IReadOnlyList<MyChildResponse>> ListByGuardianAsync(
+        Guid guardianId,
+        CancellationToken cancellationToken = default) =>
+        repository.ListByGuardianAsync(guardianId, cancellationToken);
+
+    /// <summary>Se o responsável tem hoje um vínculo ativo com o aluno (checagem de acesso, não de retirada).</summary>
+    public Task<bool> IsActivelyLinkedAsync(
+        Guid guardianId,
+        Guid studentId,
+        CancellationToken cancellationToken = default) =>
+        repository.ActivePairExistsAsync(guardianId, studentId, cancellationToken);
+
     public async Task<Result<GuardianStudentResponse>> LinkAsync(
         Guid transporterId,
         Guid studentId,

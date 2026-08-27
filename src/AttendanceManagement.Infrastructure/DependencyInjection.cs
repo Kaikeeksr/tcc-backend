@@ -66,6 +66,10 @@ public static class DependencyInjection
         services.AddScoped<IGuardianRepository, GuardianRepository>();
         services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
         services.AddScoped<IGuardianStudentRepository, GuardianStudentRepository>();
+        services.AddScoped<IAttendanceSessionRepository, AttendanceSessionRepository>();
+        services.AddScoped<IAttendanceRecordRepository, AttendanceRecordRepository>();
+        services.AddScoped<IEventLogRepository, EventLogRepository>();
+        services.AddScoped<ICalendarDayRepository, CalendarDayRepository>();
 
         AddAuthentication(services, configuration);
 

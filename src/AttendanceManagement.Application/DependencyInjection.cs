@@ -1,7 +1,9 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
 using AttendanceManagement.Application.Assistants;
+using AttendanceManagement.Application.Attendance;
 using AttendanceManagement.Application.Authentication;
+using AttendanceManagement.Application.CalendarDays;
 using AttendanceManagement.Application.Enrollments;
 using AttendanceManagement.Application.Guardians;
 using AttendanceManagement.Application.GuardianStudents;
@@ -29,6 +31,8 @@ public static class DependencyInjection
         services.AddScoped<GuardianService>();
         services.AddScoped<EnrollmentService>();
         services.AddScoped<GuardianStudentService>();
+        services.AddScoped<AttendanceService>();
+        services.AddScoped<CalendarDayService>();
 
         // Todos os AbstractValidator<> desta assembly viram IValidator<T> escopados.
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);

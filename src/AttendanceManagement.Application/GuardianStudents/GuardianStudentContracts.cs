@@ -22,3 +22,12 @@ public sealed record GuardianStudentResponse(
     [property: JsonPropertyName("is_primary")] bool IsPrimary,
     [property: JsonPropertyName("can_pickup")] bool CanPickup,
     [property: JsonPropertyName("active")] bool Active);
+
+/// <summary>Um filho vinculado ao responsável autenticado (tela "meus filhos").</summary>
+public sealed record MyChildResponse(
+    [property: JsonPropertyName("student_id")] Guid StudentId,
+    [property: JsonPropertyName("student_name")] string StudentName,
+    [property: JsonPropertyName("grade")] string? Grade,
+    [property: JsonPropertyName("relationship")] RelationshipType Relationship,
+    [property: JsonPropertyName("is_primary")] bool IsPrimary,
+    [property: JsonPropertyName("can_pickup")] bool CanPickup);

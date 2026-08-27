@@ -53,4 +53,18 @@ internal sealed class GuardianStudentRepository(AppDbContext context) : IGuardia
                 gs.CanPickup,
                 gs.Active))
             .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<MyChildResponse>> ListByGuardianAsync(Guid guardianId, CancellationToken cancellationToken = default) =>
+        await context.GuardianStudents
+            .Where(gs => gs.GuardianId == guardianId && gs.Active)
+            .OrderByDescending(gs => gs.IsPrimary)
+            .ThenBy(gs => gs.Student.Name)
+            .Select(gs => new MyChildResponse(
+                gs.StudentId,
+                gs.Student.Name,
+                gs.Student.Grade,
+                gs.Relationship,
+                gs.IsPrimary,
+                gs.CanPickup))
+            .ToListAsync(cancellationToken);
 }
