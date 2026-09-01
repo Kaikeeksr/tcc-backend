@@ -1,8 +1,8 @@
 # API de Gestão de Chamadas — Transporte Escolar
 
-API .NET 10 para gestão de chamadas de transportadores escolares ("tios da van"), em arquitetura de 4 camadas com PostgreSQL, OpenAPI 3.1 e interface Scalar.
+API .NET 10 para gestão de chamadas de transportadores escolares (os "tios da van"), em arquitetura de 4 camadas com PostgreSQL, OpenAPI 3.1 e interface Scalar.
 
-> **Estado atual:** modelo de dados aplicado no banco e **superfície da API construída** — 60 operações em 14 controllers, cobrindo autenticação, cadastros, chamada (incluindo a retirada pelo responsável), calendário letivo e relatórios de frequência. O app cliente ([`tcc-mobie-app`](https://github.com/Kaikeeksr/tcc-mobie-app)) consome esta API, sem dados mockados. Ver [Próximos passos](#próximos-passos).
+> **Estado atual:** modelo de dados aplicado no banco e **superfície da API construída** — 60 operações em 14 controllers, cobrindo autenticação, cadastros, chamada (incluindo a retirada pelo responsável), calendário letivo e relatórios de frequência. O app cliente ([`tcc-mobie-app`](https://github.com/Kaikeeksr/tcc-mobie-app)) consome esta API sem nenhum dado mockado. Ver [O que ainda falta](#o-que-ainda-falta).
 
 ---
 
@@ -99,7 +99,7 @@ Só o **desvio** é gravado: toda data é letiva por omissão, fins de semana s�
 
 ### Perfis responsável e aluno — `/api/me` (3)
 
-Escopo restrito: devolve **apenas** os alunos vinculados a quem pede.
+Escopo restrito de propósito: devolve **apenas** os alunos vinculados a quem pede.
 
 | Método | Rota | O que faz |
 |---|---|---|
@@ -126,7 +126,7 @@ Dependências verificadas pelo compilador, não por convenção.
 | **Infrastructure** | EF Core, Npgsql, configurações, migrations, JWT, hashing. | 7 |
 | **Api** | Pipeline HTTP, composition root, controllers. | 5 (uma delas, `EFCore.Design`, só em tempo de projeto) |
 
-O que torna a API agnóstica de banco: as interfaces de persistência são declaradas na Application e implementadas na Infrastructure. O `Program.cs` chama `AddInfrastructure()` em **uma linha** — é o único ponto que sabe que PostgreSQL existe.
+O que torna a API agnóstica de banco: as interfaces de persistência são declaradas na Application e implementadas na Infrastructure. O `Program.cs` chama `AddInfrastructure()` em **uma linha** — é o único ponto do sistema que sabe que PostgreSQL existe.
 
 ---
 
@@ -134,7 +134,7 @@ O que torna a API agnóstica de banco: as interfaces de persistência são decla
 
 - **Senha:** PBKDF2 sobre HMAC-SHA256, 600.000 iterações, salt de 16 bytes por credencial. O valor gravado carrega iterações + salt + hash, então o custo pode subir sem invalidar as credenciais existentes. Comparação em tempo constante.
 - **Token:** JWT (RFC 7519) assinado em HMAC-SHA256, com validação de issuer, audience, assinatura e validade. Sete claims, entre elas `transporter_id` e `profile_id`. Nenhum dado pessoal sensível vai no payload — o conteúdo do JWT é codificado, não cifrado (RFC 8725).
-- **Isolamento:** o `transporter_id` é lido **exclusivamente** da claim, nunca do corpo ou da rota, e num único ponto — o `ApiController` base do qual todos os controllers derivam. Recurso de outro tenant responde **404**, não 403: 403 já revelaria que ele existe.
+- **Isolamento:** o `transporter_id` é lido **exclusivamente** da claim, nunca do corpo ou da rota, e num único ponto: o `ApiController` base do qual todos os controllers derivam. Recurso de outro tenant responde **404**, não 403 — 403 já revelaria que ele existe.
 
 ---
 
@@ -148,7 +148,7 @@ O que torna a API agnóstica de banco: as interfaces de persistência são decla
 **Perfis** (escopados por transportador)
 - `transporter` — o "tio da van". **Raiz do tenant**: todo dado pertence a um. Tem CPF/CNPJ e CNH.
 - `assistant` — o monitor. Login próprio, pertence a exatamente um transportador.
-- `guardian` — o responsável. Concentra os dados de contato (centro da LGPD). Login obrigatório.
+- `guardian` — o responsável. Concentra os dados de contato, e por isso é o centro da estratégia de LGPD. Login obrigatório.
 - `student` — o aluno. Login opcional. Tem `grade` (série escolar, ex.: `"3°A"`).
 
 **Operação**
@@ -173,7 +173,7 @@ O que torna a API agnóstica de banco: as interfaces de persistência são decla
 
 ### O caso central: "retirado pelo responsável"
 
-Se o responsável busca o aluno na escola antes da van chegar, isso **não é falta**. O `attendance_record` tem colunas tipadas para o caso: status `PickedUpByGuardian`, quem retirou, justificativa e hora. Antes de aceitar, o serviço confere `guardian_student.can_pickup` daquele responsável sobre aquele aluno — sem permissão, a operação é recusada. Um índice parcial faz a tela "quem foi retirado hoje" varrer só as linhas retiradas.
+É o caso que orientou boa parte do modelo. Se o responsável busca o aluno na escola antes da van chegar, isso **não é falta**. O `attendance_record` tem colunas tipadas para o caso: status `PickedUpByGuardian`, quem retirou, justificativa e hora. Antes de aceitar, o serviço confere o `guardian_student.can_pickup` daquele responsável sobre aquele aluno — sem permissão, a operação é recusada. Um índice parcial faz a tela "quem foi retirado hoje" varrer só as linhas retiradas.
 
 ### Tratamento de erro
 
@@ -194,9 +194,9 @@ Regra de negócio violada **não lança exceção**: as entidades devolvem `Resu
 | Migrations explícitas (sem `Database.Migrate()` no boot) | duas instâncias subindo juntas brigariam pelo schema |
 | Compressão Brotli/Gzip, `AddDbContextPool`, `NoTracking` global | throughput |
 
-Sem AutoMapper e sem MediatR — ambos passaram a exigir licença comercial paga.
+Sem AutoMapper e sem MediatR — ambos passaram a exigir licença comercial paga, e não valia prender o projeto nisso.
 
-**LGPD:** dado pessoal fica centralizado no `guardian`, então a anonimização de erasure toca poucas tabelas. Soft delete **não** é erasure — são operações distintas.
+**LGPD:** o dado pessoal fica centralizado no `guardian`, então a anonimização de erasure toca poucas tabelas. Soft delete **não** é erasure — são operações distintas.
 
 ---
 
@@ -213,16 +213,18 @@ Em deploy, as variáveis `ConnectionStrings__DefaultConnection` e `Jwt__Key` sob
 
 ---
 
-## Próximos passos
+## O que ainda falta
 
-1. **Testes** — xUnit no Domain (não tem dependência, testa fácil) e Testcontainers na Infrastructure.
-2. **Consentimento LGPD** — o titular é menor; o consentimento do responsável (art. 14, §1º da Lei nº 13.709/2018) precisa ser registrável, datável e revogável.
-3. **Paginação** em toda listagem antes de ir a produção.
+1. **Testes** — xUnit no Domain (que não tem dependência nenhuma, então testa fácil) e Testcontainers na Infrastructure.
+2. **Consentimento LGPD** — o titular é menor, então o consentimento do responsável (art. 14, §1º da Lei nº 13.709/2018) precisa ser registrável, datável e revogável.
+3. **Paginação** em toda listagem, antes de qualquer ideia de produção.
 4. **Publicação** da API em ambiente de produção. O banco já está em nuvem.
 5. **Exportação em planilha** (XLSX) dos relatórios de frequência — hoje só há PDF, gerado no cliente.
 
 ---
 
-## Contexto acadêmico
+## Sobre
 
-Este repositório é o backend do Trabalho de Conclusão de Curso em Engenharia de Software de Kaike Santos Rocha. O cliente que o consome está em [`tcc-mobie-app`](https://github.com/Kaikeeksr/tcc-mobie-app).
+Backend do Trabalho de Conclusão de Curso em Engenharia de Software. O cliente que o consome está em [`tcc-mobie-app`](https://github.com/Kaikeeksr/tcc-mobie-app).
+
+**Kaike Santos Rocha** — [@Kaikeeksr](https://github.com/Kaikeeksr)
