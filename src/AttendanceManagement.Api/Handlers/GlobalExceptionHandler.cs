@@ -28,6 +28,11 @@ internal sealed class GlobalExceptionHandler(
                 "Conflict with current state",
                 "The record already exists. Check the unique fields and try again."),
 
+            UnauthorizedAccessException => (
+                StatusCodes.Status401Unauthorized,
+                "Unauthorized",
+                "The token is missing a required claim."),
+
             OperationCanceledException => (
                 Status499ClientClosedRequest,
                 "Request canceled",

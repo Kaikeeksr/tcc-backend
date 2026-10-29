@@ -2,6 +2,7 @@ using AttendanceManagement.Api.Configurations;
 using AttendanceManagement.Api.Handlers;
 using AttendanceManagement.Application;
 using AttendanceManagement.Infrastructure;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +12,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddControllersConfiguration();
 builder.Services.AddOpenApiConfiguration();
 builder.Services.AddCompressionConfiguration();
-builder.Services.AddCorsConfiguration(builder.Configuration);
+builder.Services.AddCorsConfiguration(builder.Configuration, builder.Environment);
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // ProblemDetails (RFC 9457) como formato único de erro. O traceId correlaciona
@@ -29,7 +30,26 @@ var app = builder.Build();
 // vier dos middlewares seguintes; autenticação/autorização antes do MapControllers.
 app.UseExceptionHandler();
 app.UseResponseCompression();
-app.UseHttpsRedirection();
+
+// Em Development o front roda em outra origem/porta (CORS) sobre HTTP puro: redirecionar
+// para HTTPS antes do CORS quebra o preflight (navegador não segue redirect de OPTIONS).
+if (!app.Environment.IsDevelopment())
+{
+    // Atrás do proxy do host (Render/etc.) o TLS termina na borda e o container só
+    // recebe HTTP puro: sem isso, Request.Scheme é sempre "http" e UseHttpsRedirection
+    // entra em loop de redirect. KnownProxies/KnownNetworks vazios porque a borda não
+    // tem IP fixo — único hop confiável entre internet e container.
+    var forwardedHeadersOptions = new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    };
+    forwardedHeadersOptions.KnownIPNetworks.Clear();
+    forwardedHeadersOptions.KnownProxies.Clear();
+    app.UseForwardedHeaders(forwardedHeadersOptions);
+
+    app.UseHttpsRedirection();
+}
+
 app.UseCors(CorsConfiguration.PolicyName);
 app.UseAuthentication();
 app.UseAuthorization();

@@ -26,7 +26,11 @@ public abstract class ApiController : ControllerBase
     protected Guid ProfileId => ReadGuidClaim(AuthClaims.ProfileId);
 
     private Guid ReadGuidClaim(string claimType) =>
-        Guid.TryParse(User.FindFirstValue(claimType), out var value) ? value : Guid.Empty;
+        Guid.TryParse(User.FindFirstValue(claimType), out var value)
+            ? value
+            // Token válido (passou na autenticação) mas sem a claim esperada: trata como
+            // acesso negado, não como "tenant vazio" silencioso.
+            : throw new UnauthorizedAccessException($"Missing or invalid claim: {claimType}");
 
     /// <summary>Sucesso vira 200 com o valor; falha vira o ProblemDetails do erro.</summary>
     protected IActionResult FromResult<TValue>(Result<TValue> result) =>
