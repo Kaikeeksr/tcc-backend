@@ -21,8 +21,10 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- Nao exige comentario XML em todo membro publico; o doc file existe para o OpenAPI.
          CA1716: nomes como "Error", "to", "date" colidem com palavras reservadas de OUTRAS
-         linguagens .NET (VB, etc.) - irrelevante para um projeto 100% C#. -->
-    <NoWarn>$(NoWarn);CS1591;CA1716</NoWarn>
+         linguagens .NET (VB, etc.) - irrelevante para um projeto 100% C#.
+         CA1861: dispara nos arquivos de Migrations gerados pelo `dotnet ef migrations add` -
+         codigo scaffolded, nao reescrito a mao; toda migration nova vai disparar de novo. -->
+    <NoWarn>$(NoWarn);CS1591;CA1716;CA1861</NoWarn>
   </PropertyGroup>
 
 </Project>
