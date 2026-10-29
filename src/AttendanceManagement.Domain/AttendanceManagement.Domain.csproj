@@ -7,11 +7,4 @@
     TargetFramework, Nullable e ImplicitUsings vem do Directory.Build.props na raiz.
   -->
 
-  <PropertyGroup>
-    <!-- CA1716: "Error" colide com palavra reservada em outras linguagens (VB, etc.).
-         E o nome de dominio do padrao Result<T>/Error usado em todo o projeto;
-         renomear custaria mais do que vale. -->
-    <NoWarn>$(NoWarn);CA1716</NoWarn>
-  </PropertyGroup>
-
 </Project>

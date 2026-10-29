@@ -19,8 +19,10 @@
     <InvariantGlobalization>true</InvariantGlobalization>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <!-- Nao exige comentario XML em todo membro publico; o doc file existe para o OpenAPI. -->
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- Nao exige comentario XML em todo membro publico; o doc file existe para o OpenAPI.
+         CA1716: nomes como "Error", "to", "date" colidem com palavras reservadas de OUTRAS
+         linguagens .NET (VB, etc.) - irrelevante para um projeto 100% C#. -->
+    <NoWarn>$(NoWarn);CS1591;CA1716</NoWarn>
   </PropertyGroup>
 
 </Project>
