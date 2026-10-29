@@ -2,6 +2,7 @@ using AttendanceManagement.Api.Configurations;
 using AttendanceManagement.Api.Handlers;
 using AttendanceManagement.Application;
 using AttendanceManagement.Infrastructure;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,18 @@ app.UseResponseCompression();
 // para HTTPS antes do CORS quebra o preflight (navegador não segue redirect de OPTIONS).
 if (!app.Environment.IsDevelopment())
 {
+    // Atrás do proxy do host (Render/etc.) o TLS termina na borda e o container só
+    // recebe HTTP puro: sem isso, Request.Scheme é sempre "http" e UseHttpsRedirection
+    // entra em loop de redirect. KnownProxies/KnownNetworks vazios porque a borda não
+    // tem IP fixo — único hop confiável entre internet e container.
+    var forwardedHeadersOptions = new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    };
+    forwardedHeadersOptions.KnownIPNetworks.Clear();
+    forwardedHeadersOptions.KnownProxies.Clear();
+    app.UseForwardedHeaders(forwardedHeadersOptions);
+
     app.UseHttpsRedirection();
 }
 
