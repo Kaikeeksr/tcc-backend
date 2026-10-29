@@ -19,7 +19,7 @@ dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=<host>;Port=
 ```
 
 ```bash
-dotnet user-secrets set "Jwt:Key" "<chave-de-no-minimo-32-bytes>" --project src/AttendanceManagement.Api
+dotnet user-secrets set "Jwt:SigningKey" "<chave-de-no-minimo-32-bytes>" --project src/AttendanceManagement.Api
 ```
 
 ```bash
@@ -207,7 +207,7 @@ Dois detalhes que separam "conecta" de "não conecta":
 - **`Trust Server Certificate=true`** é obrigatório junto com `SSL Mode=Require`: a partir do Npgsql 8, `Require` deixou de implicar confiança no certificado.
 - **`Maximum Pool Size` baixo (4)**: planos menores limitam conexões simultâneas; pool grande demais vira erro, não performance.
 
-Em deploy, as variáveis `ConnectionStrings__DefaultConnection` e `Jwt__Key` sobrepõem o user-secrets.
+Em deploy, as variáveis `ConnectionStrings__DefaultConnection` e `Jwt__SigningKey` sobrepõem o user-secrets.
 
 > A connection string e a chave do JWT **nunca** vão para o repositório — vivem em `dotnet user-secrets` (fora da pasta do projeto) ou em variável de ambiente.
 
@@ -215,7 +215,7 @@ Em deploy, as variáveis `ConnectionStrings__DefaultConnection` e `Jwt__Key` sob
 
 ## Próximos passos
 
-1. **Testes** — xUnit no Domain (não tem dependência, testa fácil) e Testcontainers na Infrastructure.
+1. ~~**Testes** — xUnit no Domain~~ feito: `AttendanceManagement.Domain.Tests`. Testcontainers na Infrastructure ainda não.
 2. **Consentimento LGPD** — o titular é menor; o consentimento do responsável (art. 14, §1º da Lei nº 13.709/2018) precisa ser registrável, datável e revogável.
 3. **Paginação** em toda listagem antes de ir a produção.
 4. **Publicação** da API em ambiente de produção. O banco já está em nuvem.

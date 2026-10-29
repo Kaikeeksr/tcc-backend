@@ -11,7 +11,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddControllersConfiguration();
 builder.Services.AddOpenApiConfiguration();
 builder.Services.AddCompressionConfiguration();
-builder.Services.AddCorsConfiguration(builder.Configuration);
+builder.Services.AddCorsConfiguration(builder.Configuration, builder.Environment);
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // ProblemDetails (RFC 9457) como formato único de erro. O traceId correlaciona
@@ -29,7 +29,14 @@ var app = builder.Build();
 // vier dos middlewares seguintes; autenticação/autorização antes do MapControllers.
 app.UseExceptionHandler();
 app.UseResponseCompression();
-app.UseHttpsRedirection();
+
+// Em Development o front roda em outra origem/porta (CORS) sobre HTTP puro: redirecionar
+// para HTTPS antes do CORS quebra o preflight (navegador não segue redirect de OPTIONS).
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseCors(CorsConfiguration.PolicyName);
 app.UseAuthentication();
 app.UseAuthorization();
