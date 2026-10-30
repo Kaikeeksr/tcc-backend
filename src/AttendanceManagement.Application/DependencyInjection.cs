@@ -5,6 +5,7 @@ using AttendanceManagement.Application.Attendance;
 using AttendanceManagement.Application.Authentication;
 using AttendanceManagement.Application.CalendarDays;
 using AttendanceManagement.Application.Enrollments;
+using AttendanceManagement.Application.GuardianConsents;
 using AttendanceManagement.Application.Guardians;
 using AttendanceManagement.Application.GuardianStudents;
 using AttendanceManagement.Application.Schools;
@@ -31,6 +32,7 @@ public static class DependencyInjection
         services.AddScoped<GuardianService>();
         services.AddScoped<EnrollmentService>();
         services.AddScoped<GuardianStudentService>();
+        services.AddScoped<GuardianConsentService>();
         services.AddScoped<AttendanceService>();
         services.AddScoped<CalendarDayService>();
 

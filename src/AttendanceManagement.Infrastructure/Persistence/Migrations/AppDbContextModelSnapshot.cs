@@ -448,6 +448,52 @@ namespace AttendanceManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("guardian", (string)null);
                 });
 
+            modelBuilder.Entity("AttendanceManagement.Domain.Entities.GuardianConsent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("GrantedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("granted_at_utc");
+
+                    b.Property<Guid>("GuardianId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("guardian_id");
+
+                    b.Property<DateTime?>("RevokedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at_utc");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<string>("TermsVersion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("terms_version");
+
+                    b.Property<Guid>("TransporterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("transporter_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_guardian_consent");
+
+                    b.HasIndex("StudentId")
+                        .HasDatabaseName("ix_guardian_consent_student_id");
+
+                    b.HasIndex("GuardianId", "StudentId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_guardian_consent_active")
+                        .HasFilter("revoked_at_utc IS NULL");
+
+                    b.ToTable("guardian_consent", (string)null);
+                });
+
             modelBuilder.Entity("AttendanceManagement.Domain.Entities.GuardianStudent", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1083,6 +1129,27 @@ namespace AttendanceManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("Transporter");
 
                     b.Navigation("UserAccount");
+                });
+
+            modelBuilder.Entity("AttendanceManagement.Domain.Entities.GuardianConsent", b =>
+                {
+                    b.HasOne("AttendanceManagement.Domain.Entities.Guardian", "Guardian")
+                        .WithMany()
+                        .HasForeignKey("GuardianId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_guardian_consent_guardian_guardian_id");
+
+                    b.HasOne("AttendanceManagement.Domain.Entities.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_guardian_consent_students_student_id");
+
+                    b.Navigation("Guardian");
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("AttendanceManagement.Domain.Entities.GuardianStudent", b =>

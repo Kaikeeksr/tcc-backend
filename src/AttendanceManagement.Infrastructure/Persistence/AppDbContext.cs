@@ -33,6 +33,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
     public DbSet<CalendarDay> CalendarDays => Set<CalendarDay>();
 
+    public DbSet<GuardianConsent> GuardianConsents => Set<GuardianConsent>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);

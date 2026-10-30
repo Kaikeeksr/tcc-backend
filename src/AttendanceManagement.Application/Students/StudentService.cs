@@ -170,5 +170,5 @@ public sealed class StudentService(
     }
 
     private static StudentResponse ToResponse(Student student) =>
-        new(student.Id, student.Name, student.BirthDate, student.Grade, student.SchoolId, student.UserAccountId is not null);
+        new(student.Id, student.Name, student.BirthDate, student.Grade, student.SchoolId, student.UserAccountId is not null, GuardianConsentActive: false);
 }

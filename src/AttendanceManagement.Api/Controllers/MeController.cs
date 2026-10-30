@@ -1,4 +1,5 @@
 using AttendanceManagement.Application.Attendance;
+using AttendanceManagement.Application.GuardianConsents;
 using AttendanceManagement.Application.GuardianStudents;
 using AttendanceManagement.Domain.Abstractions;
 using AttendanceManagement.Domain.Enums;
@@ -13,7 +14,10 @@ namespace AttendanceManagement.Api.Controllers;
 /// </summary>
 [Route("api/me")]
 [Authorize]
-public sealed class MeController(GuardianStudentService guardianStudents, AttendanceService attendance) : ApiController
+public sealed class MeController(
+    GuardianStudentService guardianStudents,
+    AttendanceService attendance,
+    GuardianConsentService consents) : ApiController
 {
     /// <summary>Lista os filhos ativamente vinculados ao responsável autenticado.</summary>
     [HttpGet("children")]
@@ -52,4 +56,31 @@ public sealed class MeController(GuardianStudentService guardianStudents, Attend
         [FromQuery] DateOnly to,
         CancellationToken cancellationToken) =>
         FromResult(await attendance.GetStudentHistoryAsync(TenantId, ProfileId, from, to, cancellationToken));
+
+    /// <summary>Estado do consentimento LGPD de cada filho ativamente vinculado ao responsável autenticado.</summary>
+    [HttpGet("consents")]
+    [Authorize(Roles = nameof(PrimaryRole.Guardian))]
+    [ProducesResponseType<IReadOnlyList<GuardianConsentStatusResponse>>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetConsents(CancellationToken cancellationToken) =>
+        Ok(await consents.ListByGuardianAsync(ProfileId, cancellationToken));
+
+    /// <summary>Concede o consentimento LGPD para o tratamento de dados de um filho.</summary>
+    [HttpPost("children/{studentId:guid}/consent")]
+    [Authorize(Roles = nameof(PrimaryRole.Guardian))]
+    [ProducesResponseType<GuardianConsentStatusResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> GrantConsent(
+        Guid studentId,
+        GrantGuardianConsentRequest request,
+        CancellationToken cancellationToken) =>
+        FromResult(await consents.GrantAsync(TenantId, ProfileId, studentId, CurrentUserId, request, cancellationToken));
+
+    /// <summary>Revoga o consentimento ativo de um filho (não apaga — o histórico permanece).</summary>
+    [HttpPost("children/{studentId:guid}/consent/revoke")]
+    [Authorize(Roles = nameof(PrimaryRole.Guardian))]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> RevokeConsent(Guid studentId, CancellationToken cancellationToken) =>
+        NoContentOrProblem(await consents.RevokeAsync(TenantId, ProfileId, studentId, CurrentUserId, cancellationToken));
 }

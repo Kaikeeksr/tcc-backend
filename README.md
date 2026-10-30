@@ -2,7 +2,7 @@
 
 API .NET 10 para gestão de chamadas de transportadores escolares (os "tios da van"), em arquitetura de 4 camadas com PostgreSQL, OpenAPI 3.1 e interface Scalar.
 
-> **Estado atual:** modelo de dados aplicado no banco e **superfície da API construída** — 60 operações em 14 controllers, cobrindo autenticação, cadastros, chamada (incluindo a retirada pelo responsável), calendário letivo e relatórios de frequência. O app cliente ([`tcc-mobie-app`](https://github.com/Kaikeeksr/tcc-mobie-app)) consome esta API sem nenhum dado mockado. Ver [O que ainda falta](#o-que-ainda-falta).
+> **Estado atual:** modelo de dados aplicado no banco e **superfície da API construída** — 63 operações em 14 controllers, cobrindo autenticação, cadastros, chamada (incluindo a retirada pelo responsável), consentimento LGPD, calendário letivo e relatórios de frequência. O app cliente ([`tcc-mobie-app`](https://github.com/Kaikeeksr/tcc-mobie-app)) consome esta API sem nenhum dado mockado. Ver [O que ainda falta](#o-que-ainda-falta).
 
 ---
 
@@ -36,9 +36,31 @@ Se `dotnet ef` não existir: `dotnet tool install --global dotnet-ef`.
 
 ---
 
+## Testes e CI
+
+```bash
+dotnet test
+```
+
+Dois projetos: `AttendanceManagement.Domain.Tests` (entidades, sem dependência nenhuma) e
+`AttendanceManagement.Application.Tests` (casos de uso, com fakes em memória no lugar dos
+repositórios — sem precisar de banco). O GitHub Actions (`.github/workflows/ci.yml`) roda
+`dotnet build` e `dotnet test` a cada push e pull request.
+
+Além disso, com a API rodando (`dotnet run --project src/AttendanceManagement.Api`):
+
+```bash
+node scripts/seed.mjs   # povoa um cenário de demonstração (transportador, grupo, alunos, responsável)
+node scripts/e2e.mjs    # fumaça de ponta a ponta: chamada, retirada, isolamento entre tenants, consentimento
+```
+
+Sem dependências de npm — só o `fetch` do Node 18+. `API_URL` (padrão `http://localhost:5218`) aponta para outro ambiente.
+
+---
+
 ## Endpoints
 
-60 operações. Todas exigem `Authorization: Bearer <token>` e são escopadas pelo tenant, exceto `register` e `login`. A documentação viva está em `/scalar`; a tabela abaixo é o mapa.
+63 operações. Todas exigem `Authorization: Bearer <token>` e são escopadas pelo tenant, exceto `register` e `login`. A documentação viva está em `/scalar`; a tabela abaixo é o mapa.
 
 ### Infraestrutura
 
@@ -97,7 +119,7 @@ Só o **desvio** é gravado: toda data é letiva por omissão, fins de semana s�
 | `PUT` | `/api/calendar-days` | Marca uma data (ou período) como feriado/letivo. |
 | `DELETE` | `/api/calendar-days/{date}` | Remove a marcação. |
 
-### Perfis responsável e aluno — `/api/me` (3)
+### Perfis responsável e aluno — `/api/me` (6)
 
 Escopo restrito de propósito: devolve **apenas** os alunos vinculados a quem pede.
 
@@ -106,6 +128,9 @@ Escopo restrito de propósito: devolve **apenas** os alunos vinculados a quem pe
 | `GET` | `/api/me/children` | Filhos do responsável autenticado. |
 | `GET` | `/api/me/children/{studentId}/attendance` | Frequência de um filho. |
 | `GET` | `/api/me/attendance` | Frequência do próprio aluno autenticado. |
+| `GET` | `/api/me/consents` | Estado do consentimento LGPD de cada filho vinculado. |
+| `POST` | `/api/me/children/{studentId}/consent` | Concede o consentimento (LGPD, art. 14, §1º). |
+| `POST` | `/api/me/children/{studentId}/consent/revoke` | Revoga o consentimento ativo — não apaga, o histórico permanece. |
 
 ---
 
@@ -140,7 +165,7 @@ O que torna a API agnóstica de banco: as interfaces de persistência são decla
 
 ## Modelo de dados
 
-14 tabelas, nomenclatura em inglês, snake_case no banco.
+15 tabelas, nomenclatura em inglês, snake_case no banco.
 
 **Identidade**
 - `user_account` — credencial única de login. Não guarda dado de negócio.
@@ -158,6 +183,7 @@ O que torna a API agnóstica de banco: as interfaces de persistência são decla
 **Relacionamentos**
 - `guardian_student` — N:N com parentesco, contato principal e permissão de retirada
 - `enrollment` — N:N aluno ↔ grupo, temporal (troca de grupo preserva histórico)
+- `guardian_consent` — consentimento LGPD do responsável por filho (LGPD, art. 14, §1º). Revogar não apaga a linha; conceder de novo cria outra — o histórico completo permanece.
 
 **Chamada e histórico**
 - `attendance_session` — a chamada (ida/volta, por grupo, por dia)
@@ -215,14 +241,11 @@ Em deploy, as variáveis `ConnectionStrings__DefaultConnection` e `Jwt__SigningK
 
 ## O que ainda falta
 
-1. **Testes** — xUnit no Domain (que não tem dependência nenhuma, então testa fácil) e Testcontainers na Infrastructure.
-2. **Consentimento LGPD** — o titular é menor, então o consentimento do responsável (art. 14, §1º da Lei nº 13.709/2018) precisa ser registrável, datável e revogável.
+1. ~~**Testes** — xUnit no Domain~~ feito: `AttendanceManagement.Domain.Tests` e `AttendanceManagement.Application.Tests`, mais o smoke e2e em `scripts/e2e.mjs`. Testcontainers na Infrastructure ainda não.
+2. ~~**Consentimento LGPD**~~ feito: entidade `GuardianConsent`, endpoints em `/api/me/consents` e telas no app.
 3. **Paginação** em toda listagem, antes de qualquer ideia de produção.
-1. ~~**Testes** — xUnit no Domain~~ feito: `AttendanceManagement.Domain.Tests`. Testcontainers na Infrastructure ainda não.
-2. **Consentimento LGPD** — o titular é menor; o consentimento do responsável (art. 14, §1º da Lei nº 13.709/2018) precisa ser registrável, datável e revogável.
-3. **Paginação** em toda listagem antes de ir a produção.
 4. **Publicação** da API em ambiente de produção. O banco já está em nuvem.
-5. **Exportação em planilha** (XLSX) dos relatórios de frequência — hoje só há PDF, gerado no cliente.
+5. ~~**Exportação em planilha** (XLSX)~~ feito no cliente: `exportTurmaXLSX` em `tcc-mobie-app`.
 
 ---
 
