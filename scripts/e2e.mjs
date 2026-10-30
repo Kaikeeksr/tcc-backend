@@ -8,6 +8,9 @@ import { get, post, put, unique, ApiError, API_URL } from './lib/client.mjs';
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
+/** CPF é único por transportador — cada chamada precisa do seu próprio número. */
+const uniqueDocumentNumber = () => String(Date.now() + Math.floor(Math.random() * 1000)).slice(-11).padStart(11, '0');
+
 const registerTransporter = async () => {
   const email = unique('e2e.transportador') + '@example.com';
   const response = await post('/api/auth/register', {
@@ -16,7 +19,7 @@ const registerTransporter = async () => {
     phone: '11999990000',
     password: 'Demo12345',
     document_type: 'Cpf',
-    document_number: '98765432100',
+    document_number: uniqueDocumentNumber(),
   });
   return { token: response.token, email };
 };

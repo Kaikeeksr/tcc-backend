@@ -2,7 +2,7 @@
 
 API .NET 10 para gestão de chamadas de transportadores escolares (os "tios da van"), em arquitetura de 4 camadas com PostgreSQL, OpenAPI 3.1 e interface Scalar.
 
-> **Estado atual:** modelo de dados aplicado no banco e **superfície da API construída** — 63 operações em 14 controllers, cobrindo autenticação, cadastros, chamada (incluindo a retirada pelo responsável), consentimento LGPD, calendário letivo e relatórios de frequência. O app cliente ([`tcc-mobie-app`](https://github.com/Kaikeeksr/tcc-mobie-app)) consome esta API sem nenhum dado mockado. Ver [O que ainda falta](#o-que-ainda-falta).
+> **Estado atual:** modelo de dados aplicado no banco e API completa — 63 operações em 14 controllers, cobrindo autenticação, cadastros, chamada (incluindo a retirada pelo responsável), consentimento LGPD, calendário letivo e relatórios de frequência, com testes automatizados e CI. O app cliente ([`tcc-mobie-app`](https://github.com/Kaikeeksr/tcc-mobie-app)) consome esta API em produção, sem nenhum dado mockado.
 
 ---
 
@@ -236,16 +236,6 @@ Dois detalhes que separam "conecta" de "não conecta":
 Em deploy, as variáveis `ConnectionStrings__DefaultConnection` e `Jwt__SigningKey` sobrepõem o user-secrets.
 
 > A connection string e a chave do JWT **nunca** vão para o repositório — vivem em `dotnet user-secrets` (fora da pasta do projeto) ou em variável de ambiente.
-
----
-
-## O que ainda falta
-
-1. ~~**Testes** — xUnit no Domain~~ feito: `AttendanceManagement.Domain.Tests` e `AttendanceManagement.Application.Tests`, mais o smoke e2e em `scripts/e2e.mjs`. Testcontainers na Infrastructure ainda não.
-2. ~~**Consentimento LGPD**~~ feito: entidade `GuardianConsent`, endpoints em `/api/me/consents` e telas no app.
-3. **Paginação** em toda listagem, antes de qualquer ideia de produção.
-4. **Publicação** da API em ambiente de produção. O banco já está em nuvem.
-5. ~~**Exportação em planilha** (XLSX)~~ feito no cliente: `exportTurmaXLSX` em `tcc-mobie-app`.
 
 ---
 
